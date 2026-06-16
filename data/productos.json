@@ -1,0 +1,13 @@
+[
+  {
+    "codigo": "ubic",
+    "nombre": "nnnnnn",
+    "categoria": "nnnnnn",
+    "descripcion": "nnnnnnn",
+    "costoCompra": 0.05,
+    "precioVenta": 0,
+    "stockActual": 0,
+    "stockMinimo": 0,
+    "activo": true
+  }
+]
