@@ -1,23 +1,23 @@
 import type { Product, CreateProductDto } from '../types/product';
+import { apiFetch } from './helpers';
 
 const BASE = '/products';
 
 export async function fetchProducts(): Promise<Product[]> {
-  const res = await fetch(BASE);
+  const res = await apiFetch(BASE);
   if (!res.ok) throw new Error('Error al obtener productos');
   return res.json();
 }
 
 export async function fetchProduct(id: string): Promise<Product> {
-  const res = await fetch(`${BASE}/${id}`);
+  const res = await apiFetch(`${BASE}/${id}`);
   if (!res.ok) throw new Error('Producto no encontrado');
   return res.json();
 }
 
 export async function createProduct(dto: CreateProductDto): Promise<Product> {
-  const res = await fetch(BASE, {
+  const res = await apiFetch(BASE, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dto),
   });
   if (!res.ok) {
@@ -28,9 +28,8 @@ export async function createProduct(dto: CreateProductDto): Promise<Product> {
 }
 
 export async function updateProduct(id: string, dto: Partial<CreateProductDto>): Promise<Product> {
-  const res = await fetch(`${BASE}/${id}`, {
+  const res = await apiFetch(`${BASE}/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dto),
   });
   if (!res.ok) {
@@ -41,7 +40,7 @@ export async function updateProduct(id: string, dto: Partial<CreateProductDto>):
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  const res = await fetch(`${BASE}/${id}`, {
+  const res = await apiFetch(`${BASE}/${id}`, {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error('Error al eliminar producto');

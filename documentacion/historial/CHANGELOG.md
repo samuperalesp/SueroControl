@@ -1,5 +1,135 @@
 # Historial de Cambios
 
+## [3.1.0] - 2026-06-20
+
+### Autenticación y Control de Acceso
+
+#### Nuevo: Sistema de Autenticación JWT
+- Implementación completa de autenticación mediante JSON Web Tokens (JWT).
+- Hash de contraseñas con bcrypt (nunca se almacenan en texto plano).
+- Login con usuario o correo electrónico.
+- Mostrar/Ocultar contraseña en pantalla de login.
+- Sesión persistente mediante localStorage (token JWT).
+- Cierre de sesión manual con eliminación del token.
+
+#### Nuevo: Modelo User
+- Tabla `User` en PostgreSQL con campos: id, username, email, passwordHash, nombres, apellidos, rol, activo, ultimoAcceso, createdAt, updatedAt.
+- Username único y email único (restricciones a nivel BD).
+- Validación de usuario activo para permitir acceso.
+
+#### Nuevo: Sistema de Roles
+- **ADMINISTRADOR**: acceso completo a todos los módulos, gestión de usuarios, configuración del sistema.
+- **OPERADOR**: ventas, terceros, consulta de inventario y paquetes.
+- Protección de rutas backend mediante `@Roles()` decorator y `RolesGuard`.
+- Protección de endpoints específicos según el rol.
+
+#### Nuevo: Usuario Administrador Inicial
+- Creación automática del primer usuario si no existen usuarios en la BD.
+- Usuario: `admin` / Contraseña temporal: `Admin123*`.
+- Contraseña almacenada cifrada con bcrypt.
+- Se ejecuta al iniciar el backend (`OnModuleInit`).
+
+#### Backend: Guards y Decorators
+- `JwtAuthGuard`: guard global que protege todos los endpoints.
+- `RolesGuard`: guard para restringir acceso por roles.
+- `@Public()` decorator: marca endpoints públicos (login, health check).
+- `@Roles()` decorator: especifica roles permitidos.
+- `@CurrentUser()` decorator: obtiene el usuario autenticado desde el request.
+
+#### Backend: Nuevos Módulos
+- `AuthModule`: login, JWT strategy, guard global, seed de admin.
+- `UserModule`: CRUD de usuarios (solo ADMINISTRADOR).
+
+#### Frontend: Pantalla de Login
+- Diseño profesional con gradiente azul.
+- Campos: usuario/correo y contraseña.
+- Botón Mostrar/Ocultar contraseña.
+- Manejo de errores (credenciales inválidas, error de conexión).
+- Redirección automática al dashboard tras login exitoso.
+
+#### Frontend: Protección de Rutas
+- `ProtectedRoute` component: redirige a `/login` si no hay sesión.
+- `AuthContext` y `AuthProvider`: estado global de autenticación.
+- Todas las rutas internas protegidas: Dashboard, Inventario, Compras, Ventas, Paquetes, Terceros.
+
+#### Frontend: Barra Superior
+- Nombre del usuario autenticado y rol en la barra superior.
+- Botón "Cerrar Sesión" en la barra superior.
+- Información del usuario en el sidebar.
+
+#### Frontend: API Helper
+- `apiFetch` wrapper que incluye automáticamente el token JWT en todas las solicitudes.
+- Manejo de sesión expirada (redirección automática a login al recibir 401).
+
+#### Dependencias Nuevas
+- Backend: `@nestjs/jwt`, `@nestjs/passport`, `passport`, `passport-jwt`, `bcrypt`.
+- Backend dev: `@types/passport-jwt`, `@types/bcrypt`.
+
+### Migraciones
+- Tabla `User` agregada mediante `prisma db push`.
+
+## [3.0.0] - 2026-06-20
+
+### Modelo de Rentabilidad para Paquetes y Ventas
+
+#### Cambios Mayores
+- **Modelo de negocio implementado**: rentabilidad real sobre paquetes de sueroterapia.
+- **Cálculo automático** de utilidad y distribución médico/centro.
+- **Costos operativos** agregados al cálculo (aplicación, domicilio, materiales, etc.).
+- **Snapshot histórico** de costos al momento de la venta (los cálculos no cambian aunque los costos de productos varíen).
+
+#### Modelos Nuevos
+- **PackageOperatingCost**: costos operativos asociados a cada paquete (concepto, valor).
+- **SalePackage**: snapshot de rentabilidad por venta de paquete (precioVenta, costoMedicamentos, costoOperativo, costoTotal, utilidad, gananciaMedico, gananciaCentro).
+
+#### Tablas Modificadas
+- **Package**: nuevos campos `descripcion`, `porcentajeMedico` (default 70), `porcentajeCentro` (default 30).
+- **Sale**: nuevos campos `costoTotal`, `utilidadTotal`, `gananciaMedico`, `gananciaCentro`.
+- **SaleDetail**: soporte para `productId` opcional (cuando se vende paquete, se crea un detail con `packageId` sin `productId`).
+
+#### Módulo Paquetes Actualizado
+- CRUD de paquetes con descripción, porcentajes configurables médico/centro.
+- Validación automática: suma de porcentajes debe ser 100%.
+- Componentes del paquete: productos con cantidad.
+- Costos operativos: concepto + valor.
+- Vista previa de rentabilidad en tiempo real (costo medicamentos, costo operativo, costo total, utilidad, ganancias).
+- Venta de paquete: descuenta inventario, calcula automáticamente utilidad y distribución, guarda snapshot histórico.
+
+#### Dashboard
+- Nuevo endpoint `GET /dashboard` con datos reales desde PostgreSQL.
+- Cuatro tarjetas principales:
+  - Ventas Totales (valor acumulado en COP)
+  - Costos Totales (suma de costos reales)
+  - Ganancia Médicos (valor acumulado)
+  - Ganancia Centro (valor acumulado)
+- Resumen de rentabilidad y distribución.
+- Sin datos simulados, todos los cálculos desde PostgreSQL.
+
+#### Frontend
+- **Nueva página Paquetes** (`/paquetes`): tabla con rentabilidad visible, modal de creación/edición con vista previa, modal de venta con selección de cliente, cálculo en tiempo real.
+- **Dashboard actualizado**: tarjetas financieras reales con formato COP, resumen de rentabilidad.
+- **Sidebar**: agregado enlace "Paquetes".
+- **Tipos TypeScript**: actualizados `Sale`, agregados `Package`, `PackageOperatingCost`.
+
+#### Arquitectura Preparada para Reportes Futuros
+- Rentabilidad por paquete.
+- Rentabilidad por médico.
+- Rentabilidad por período.
+- Rentabilidad por paciente.
+- Liquidación de médicos.
+- Ranking de paquetes más rentables.
+- Endpoint `GET /packages/profitability/:id` ya implementado para consultas de rentabilidad por paquete.
+
+### Backend
+- Nuevo módulo `DashboardModule` con `DashboardController` y `DashboardService`.
+- Nuevo repositorio `SalePackagePrismaRepository`.
+- Valores se almacenan en la BD al momento de la venta (no se recalculan).
+- `SalePackage` guarda precioVenta, costos, utilidad, porcentajes y ganancias como snapshot.
+
+### Migraciones
+- Esquema actualizado con `prisma db push`.
+- 3 nuevas tablas: `PackageOperatingCost`, `SalePackage`, más campos en `Package` y `Sale`.
+
 ## [2.0.0] - 2026-06-19
 
 ### Cambios Mayores

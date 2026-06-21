@@ -3,7 +3,11 @@ import { Sale } from '../entities/sale.entity';
 export const SALE_REPOSITORY = 'SALE_REPOSITORY';
 
 export interface SaleDetailData {
-  productId: string; packageId?: string; quantity: number; unitPrice: number; subTotal: number;
+  productId?: string;
+  packageId?: string;
+  quantity: number;
+  unitPrice: number;
+  subTotal: number;
 }
 
 export interface SaleSearchParams {
@@ -18,6 +22,10 @@ export interface ISaleRepository {
     consecutivo: number;
     terceroId?: string;
     total: number;
+    costoTotal?: number;
+    utilidadTotal?: number;
+    gananciaMedico?: number;
+    gananciaCentro?: number;
     details: SaleDetailData[];
   }): Promise<Sale>;
   findAll(params?: SaleSearchParams): Promise<Sale[]>;

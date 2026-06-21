@@ -1,6 +1,6 @@
 # Tareas Pendientes
 
-## Estado Actual del Proyecto (19/06/2026)
+## Estado Actual del Proyecto (20/06/2026)
 
 ### Completado
 - [x] Estructura base del proyecto (backend + frontend + documentación).
@@ -28,15 +28,35 @@
 - [x] Compras asociadas a proveedores (Terceros tipo PROVEEDOR).
 - [x] Ventas asociadas a clientes (Terceros tipo CLIENTE).
 - [x] Consecutivo automático en ventas (comprobante interno).
+- [x] Modelo de rentabilidad para paquetes (cálculo automático de utilidad y distribución médico/centro).
+- [x] Costos operativos por paquete.
+- [x] Snapshot histórico de costos al momento de la venta (SalePackage).
+- [x] Dashboard gerencial con indicadores reales desde PostgreSQL.
+- [x] Página de Paquetes en frontend con CRUD completo, vista previa de rentabilidad y venta.
+- [x] Endpoint de rentabilidad por paquete (`GET /packages/profitability/:id`).
+- [x] Autenticación JWT con login de usuarios.
+- [x] Hash de contraseñas con bcrypt.
+- [x] Sistema de roles (ADMINISTRADOR / OPERADOR).
+- [x] Usuario administrador inicial automático (admin / Admin123*).
+- [x] Protección global de endpoints backend con JwtAuthGuard.
+- [x] Protección de rutas frontend con ProtectedRoute.
+- [x] Pantalla de login profesional con mostrar/ocultar contraseña.
+- [x] Barra superior con nombre de usuario, rol y cierre de sesión.
+- [x] API helper con token JWT automático en todas las solicitudes.
+- [x] Registro de último acceso (ultimoAcceso) del usuario.
 
 ### En Progreso
 - (ninguno)
 
 ### No Iniciado
-- [ ] Dashboard Gerencial (indicadores y gráficos).
 - [ ] Alertas de Inventario (stock mínimo).
-- [ ] Autenticación y autorización (JWT).
 - [ ] Tests unitarios y e2e formales.
 - [ ] CI/CD.
 - [ ] Paginación en listados.
 - [ ] Exportación de reportes (Excel, PDF).
+- [ ] Reportes de rentabilidad por paquete (arquitectura preparada, falta UI).
+- [ ] Reportes de rentabilidad por médico.
+- [ ] Reportes de rentabilidad por período.
+- [ ] Reportes de rentabilidad por paciente.
+- [ ] Liquidación de médicos.
+- [ ] Ranking de paquetes más rentables.

@@ -14,6 +14,10 @@ export class SalePrismaRepository implements ISaleRepository {
     consecutivo: number;
     terceroId?: string;
     total: number;
+    costoTotal?: number;
+    utilidadTotal?: number;
+    gananciaMedico?: number;
+    gananciaCentro?: number;
     details: SaleDetailData[];
   }): Promise<Sale> {
     const created = await this.prisma.sale.create({
@@ -21,6 +25,10 @@ export class SalePrismaRepository implements ISaleRepository {
         consecutivo: data.consecutivo,
         terceroId: data.terceroId,
         total: data.total,
+        costoTotal: data.costoTotal,
+        utilidadTotal: data.utilidadTotal,
+        gananciaMedico: data.gananciaMedico,
+        gananciaCentro: data.gananciaCentro,
         details: { create: data.details },
       },
       include: this.include,

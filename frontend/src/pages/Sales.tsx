@@ -341,7 +341,7 @@ export default function Sales() {
                     <div className="text-xs text-gray-400">{getClienteDoc(s)}</div>
                   </td>
                   <td className="px-4 py-3 text-gray-500">
-                    {s.details?.map(d => `${getProductName(d.productId)} x${d.quantity}`).join(', ')}
+                    {s.details?.map(d => `${d.productId ? getProductName(d.productId) : 'Paquete'} x${d.quantity}`).join(', ')}
                   </td>
                   <td className="px-4 py-3 text-gray-700 font-medium">${s.total.toFixed(2)}</td>
                   <td className="px-4 py-3">

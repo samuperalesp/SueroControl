@@ -26,13 +26,14 @@
 SueroControl/
 ├── backend/                     # Proyecto NestJS
 │   ├── prisma/
-│   │   ├── schema.prisma        # Modelos de datos (9 modelos)
+│   │   ├── schema.prisma        # Modelos de datos (13 modelos)
 │   │   ├── migrations/          # Migraciones generadas
 │   │   │   └── 0001_init/
 │   │   │       └── migration.sql
 │   ├── src/
 │   │   ├── domain/              # Entidades, interfaces de repositorio
 │   │   │   ├── product/
+│   │   │   ├── user/
 │   │   │   ├── tercero/
 │   │   │   ├── purchase/
 │   │   │   ├── sale/
@@ -40,35 +41,49 @@ SueroControl/
 │   │   │   └── inventory-movement/
 │   │   ├── application/         # Servicios de aplicación, DTOs
 │   │   │   ├── product/
+│   │   │   ├── auth/
 │   │   │   ├── tercero/
 │   │   │   ├── purchase/
 │   │   │   ├── sale/
 │   │   │   ├── package/
-│   │   │   └── inventory-movement/
+│   │   │   ├── inventory-movement/
+│   │   │   └── dashboard/
 │   │   ├── infrastructure/      # Implementaciones de repositorios (Prisma)
 │   │   │   ├── prisma/
 │   │   │   │   ├── prisma.service.ts
 │   │   │   │   └── prisma.module.ts
+│   │   │   ├── auth/
+│   │   │   │   ├── strategies/
+│   │   │   │   ├── guards/
+│   │   │   │   └── decorators/
+│   │   │   ├── user/repositories/
 │   │   │   ├── product/repositories/
 │   │   │   ├── tercero/repositories/
 │   │   │   ├── purchase/repositories/
 │   │   │   ├── sale/repositories/
 │   │   │   ├── package/repositories/
+│   │   │   ├── sale-package/repositories/
 │   │   │   └── inventory-movement/repositories/
 │   │   ├── presentation/        # Controladores (APIs REST)
 │   │   │   ├── product/controllers/
+│   │   │   ├── auth/controllers/
+│   │   │   ├── user/controllers/
 │   │   │   ├── tercero/controllers/
 │   │   │   ├── purchase/controllers/
 │   │   │   ├── sale/controllers/
 │   │   │   ├── package/controllers/
+│   │   │   ├── dashboard/controllers/
 │   │   │   └── inventory-movement/controllers/
 │   │   ├── main.ts
 │   │   ├── app.module.ts
+│   │   ├── auth.module.ts
+│   │   ├── user.module.ts
 │   │   ├── product.module.ts
 │   │   ├── tercero.module.ts
 │   │   ├── purchase.module.ts
 │   │   ├── sale.module.ts
 │   │   ├── package.module.ts
+│   │   ├── dashboard.module.ts
 │   │   └── inventory-movement.module.ts
 │   ├── dist/
 │   ├── node_modules/
@@ -81,6 +96,7 @@ SueroControl/
 │   │   ├── App.tsx
 │   │   ├── main.tsx
 │   │   ├── index.css
+│   │   ├── context/             # AuthContext (estado global de autenticación)
 │   │   ├── pages/
 │   │   ├── components/
 │   │   ├── api/
@@ -99,7 +115,22 @@ SueroControl/
 └── .gitignore
 ```
 
-## Modelos de Datos (Prisma)
+## Modelos de Datos (Prisma) — 13 modelos
+
+### User
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | UUID | ID único |
+| username | String (único) | Nombre de usuario |
+| email | String (único) | Correo electrónico |
+| passwordHash | String | Hash de contraseña (bcrypt) |
+| nombres | String | Nombres del usuario |
+| apellidos | String | Apellidos del usuario |
+| rol | String | ADMINISTRADOR o OPERADOR |
+| activo | Boolean | Estado activo/inactivo |
+| ultimoAcceso | DateTime? | Último inicio de sesión |
+| createdAt | DateTime | Fecha de creación |
+| updatedAt | DateTime | Última actualización |
 
 ### Product
 | Campo | Tipo | Descripción |
@@ -153,9 +184,22 @@ SueroControl/
 - Cada venta genera automáticamente el comprobante (no existe módulo de facturación separado).
 - Al registrar: descuenta stock + valida existencia + crea InventoryMovement tipo EXIT.
 
-### Package / PackageDetail
+### Package / PackageDetail / PackageOperatingCost
 - Paquete compuesto por múltiples productos con cantidades.
-- Al vender: descuenta stock de cada producto + registra movimientos.
+- `porcentajeMedico` (default 70) y `porcentajeCentro` (default 30) para distribución de utilidad.
+- Costos operativos asociados (aplicación, domicilio, materiales, etc.).
+- Al vender: descuenta stock de cada producto, calcula automáticamente utilidad y distribución, guarda snapshot histórico en SalePackage.
+- Vista previa de rentabilidad en tiempo real.
+
+### SalePackage
+- Snapshot histórico de rentabilidad por venta de paquete.
+- Almacena precioVenta, costoMedicamentos, costoOperativo, costoTotal, utilidad, porcentajes y ganancias.
+- Los cálculos no cambian aunque varíen los costos de productos posteriormente.
+
+### Dashboard
+- Endpoint `GET /dashboard` con datos reales desde PostgreSQL.
+- Ventas Totales, Costos Totales, Ganancia Médicos, Ganancia Centro.
+- Todos los cálculos provienen de la base de datos (sin datos simulados).
 
 ### InventoryMovement (Kardex)
 | Campo | Tipo | Descripción |
@@ -204,9 +248,46 @@ SueroControl/
 | GET | /packages/:id | Obtener paquete |
 | PUT | /packages/:id | Actualizar paquete |
 | DELETE | /packages/:id | Eliminar paquete |
-| POST | /packages/:id/sell | Vender paquete |
+| POST | /packages/:id/sell | Vender paquete (calcula utilidad + distribución automáticamente) |
+| GET | /packages/profitability/:id | Rentabilidad histórica de un paquete |
+| GET | /dashboard | Dashboard: ventas totales, costos, ganancias médico/centro |
+| POST | /auth/login | Iniciar sesión (público) |
+| POST | /auth/init | Verificar inicialización (público) |
+| GET | /users | Listar usuarios (solo ADMINISTRADOR) |
+| POST | /users | Crear usuario (solo ADMINISTRADOR) |
+| GET | /users/:id | Obtener usuario (solo ADMINISTRADOR) |
+| PUT | /users/:id | Actualizar usuario (solo ADMINISTRADOR) |
+| DELETE | /users/:id | Eliminar usuario (solo ADMINISTRADOR) |
 | GET | /inventory-movements | Listar movimientos |
 | GET | /inventory-movements/product/:id | Movimientos por producto |
+
+## Autenticación y Control de Acceso
+
+### Flujo de Autenticación
+1. El usuario ingresa usuario/correo y contraseña en la pantalla de Login.
+2. El frontend envía `POST /auth/login` con las credenciales.
+3. El backend valida las credenciales contra la tabla `User` usando bcrypt.
+4. Si son válidas, genera un JWT con payload `{ sub, username, rol }` y expiración de 24h.
+5. El frontend almacena el token y datos del usuario en localStorage.
+6. Todas las solicitudes API incluyen el token en el header `Authorization: Bearer <token>`.
+7. El backend valida el token en cada solicitud mediante `JwtAuthGuard` global y `JwtStrategy`.
+
+### Guards y Decorators
+- **@Public()**: Marca un endpoint como público (ej: login). Los endpoints sin este decorator requieren autenticación.
+- **@Roles('ADMINISTRADOR')**: Restringe el acceso a usuarios con el rol especificado.
+- **@CurrentUser()**: Obtiene el usuario autenticado desde el request.
+
+### Roles
+| Rol | Permisos |
+|-----|----------|
+| ADMINISTRADOR | Acceso completo a todos los módulos. CRUD de usuarios. Configuración del sistema. |
+| OPERADOR | Ventas, Terceros, Consulta de inventario, Consulta de paquetes. |
+
+### Usuario Inicial
+- Si no existen usuarios en la BD, se crea automáticamente al iniciar el backend:
+  - Usuario: `admin`
+  - Contraseña: `Admin123*`
+  - Rol: `ADMINISTRADOR`
 
 ## Control de Cambios
 

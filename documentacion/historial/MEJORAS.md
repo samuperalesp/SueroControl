@@ -1,5 +1,27 @@
 # Mejoras Realizadas
 
+## Implementado (v3.1.0)
+- Autenticación JWT con login de usuarios.
+- Hash de contraseñas con bcrypt.
+- Sistema de roles (ADMINISTRADOR / OPERADOR).
+- Usuario administrador inicial creado automáticamente (admin / Admin123*).
+- Protección global de endpoints con JwtAuthGuard.
+- Protección de rutas frontend con ProtectedRoute.
+- Pantalla de login profesional con mostrar/ocultar contraseña.
+- Barra superior con nombre de usuario, rol y cierre de sesión.
+- API helper con token JWT automático en todas las solicitudes.
+
+## Implementado (v3.0.0)
+- Modelo de rentabilidad para paquetes (cálculo automático de utilidad y distribución médico/centro).
+- Costos operativos por paquete (aplicación, domicilio, materiales, etc.).
+- Snapshot histórico de costos al momento de la venta (no se recalcula).
+- Dashboard gerencial con indicadores reales desde PostgreSQL.
+- Vista previa de rentabilidad en creación/edición de paquetes.
+- Página de Paquetes en frontend con CRUD completo y venta.
+- Endpoint de rentabilidad por paquete para futuros reportes.
+- Validación automática de porcentajes (suma = 100%).
+- Formato COP en dashboard.
+
 ## Implementado (v2.0.0)
 - Módulo Terceros unificado (CLIENTE, PROVEEDOR, CLIENTE_PROVEEDOR).
 - Persona Natural vs Jurídica con campos dinámicos.

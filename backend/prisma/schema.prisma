@@ -6,6 +6,20 @@ datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id           String    @id @default(uuid())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String
+  nombres      String
+  apellidos    String
+  rol          String    @default("OPERADOR")
+  activo       Boolean   @default(true)
+  ultimoAcceso DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
 model Product {
   id          String   @id @default(uuid())
   codigo      String   @unique
@@ -84,13 +98,18 @@ model Sale {
   consecutivo    Int       @default(0)
   terceroId      String?
   total          Float
+  costoTotal     Float?
+  utilidadTotal  Float?
+  gananciaMedico Float?
+  gananciaCentro Float?
   estado         String    @default("ACTIVA")
   anuladaMotivo  String?
   anuladaAt      DateTime?
   createdAt      DateTime  @default(now())
 
-  tercero Tercero?    @relation(fields: [terceroId], references: [id])
-  details SaleDetail[]
+  tercero      Tercero?      @relation(fields: [terceroId], references: [id])
+  details      SaleDetail[]
+  salePackages SalePackage[]
 }
 
 model SaleDetail {
@@ -108,15 +127,20 @@ model SaleDetail {
 }
 
 model Package {
-  id        String   @id @default(uuid())
-  nombre    String
-  precio    Float
-  activo    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(uuid())
+  nombre            String
+  descripcion       String?
+  precio            Float
+  porcentajeMedico  Float    @default(70)
+  porcentajeCentro  Float    @default(30)
+  activo            Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  details     PackageDetail[]
-  saleDetails SaleDetail[]
+  details        PackageDetail[]
+  operatingCosts PackageOperatingCost[]
+  saleDetails    SaleDetail[]
+  salePackages   SalePackage[]
 }
 
 model PackageDetail {
@@ -127,6 +151,34 @@ model PackageDetail {
 
   package Package @relation(fields: [packageId], references: [id])
   product Product @relation(fields: [productId], references: [id])
+}
+
+model PackageOperatingCost {
+  id        String @id @default(uuid())
+  packageId String
+  concepto  String
+  valor     Float
+
+  package Package @relation(fields: [packageId], references: [id])
+}
+
+model SalePackage {
+  id                String   @id @default(uuid())
+  saleId            String
+  packageId         String
+  precioVenta       Float
+  costoMedicamentos Float
+  costoOperativo    Float
+  costoTotal        Float
+  utilidad          Float
+  porcentajeMedico  Float
+  porcentajeCentro  Float
+  gananciaMedico    Float
+  gananciaCentro    Float
+  createdAt         DateTime @default(now())
+
+  sale    Sale    @relation(fields: [saleId], references: [id])
+  package Package @relation(fields: [packageId], references: [id])
 }
 
 model InventoryMovement {

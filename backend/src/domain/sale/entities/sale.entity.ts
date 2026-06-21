@@ -5,6 +5,10 @@ export class Sale {
   consecutivo: number;
   terceroId?: string;
   total: number;
+  costoTotal?: number;
+  utilidadTotal?: number;
+  gananciaMedico?: number;
+  gananciaCentro?: number;
   estado: string;
   anuladaMotivo?: string;
   anuladaAt?: Date;

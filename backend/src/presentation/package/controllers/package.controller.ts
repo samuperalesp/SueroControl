@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { PackageService } from '../../../application/package/services/package.service';
 import { CreatePackageDto, UpdatePackageDto } from '../../../application/package/dtos/package.dtos';
 
@@ -16,6 +16,16 @@ export class PackageController {
   @HttpCode(HttpStatus.OK)
   async findAll() {
     return this.packageService.findAll();
+  }
+
+  @Get('profitability/:id')
+  @HttpCode(HttpStatus.OK)
+  async profitability(
+    @Param('id') id: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.packageService.getPackageProfitability(id, startDate, endDate);
   }
 
   @Get(':id')

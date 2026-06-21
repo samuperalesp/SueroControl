@@ -12,6 +12,9 @@ export default defineConfig({
       '/sales': 'http://localhost:3000',
       '/packages': 'http://localhost:3000',
       '/inventory-movements': 'http://localhost:3000',
+      '/dashboard': 'http://localhost:3000',
+      '/auth': 'http://localhost:3000',
+      '/users': 'http://localhost:3000',
     },
   },
 })

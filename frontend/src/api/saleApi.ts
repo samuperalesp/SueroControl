@@ -1,4 +1,5 @@
 import type { Sale, CreateSaleDto, UpdateSaleDto, CancelSaleDto, SaleSearchParams, ComprobanteData } from '../types/sale';
+import { apiFetch } from './helpers';
 
 const BASE = '/sales';
 
@@ -6,15 +7,14 @@ export async function fetchSales(params?: SaleSearchParams): Promise<Sale[]> {
   const qs = params ? '?' + new URLSearchParams(
     Object.entries(params).filter(([_, v]) => v !== undefined && v !== '') as [string, string][]
   ).toString() : '';
-  const res = await fetch(BASE + qs);
+  const res = await apiFetch(BASE + qs);
   if (!res.ok) throw new Error('Error al obtener ventas');
   return res.json();
 }
 
 export async function createSale(dto: CreateSaleDto): Promise<Sale> {
-  const res = await fetch(BASE, {
+  const res = await apiFetch(BASE, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dto),
   });
   if (!res.ok) {
@@ -25,9 +25,8 @@ export async function createSale(dto: CreateSaleDto): Promise<Sale> {
 }
 
 export async function updateSale(id: string, dto: UpdateSaleDto): Promise<Sale> {
-  const res = await fetch(`${BASE}/${id}`, {
+  const res = await apiFetch(`${BASE}/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dto),
   });
   if (!res.ok) {
@@ -38,9 +37,8 @@ export async function updateSale(id: string, dto: UpdateSaleDto): Promise<Sale> 
 }
 
 export async function cancelSale(id: string, dto: CancelSaleDto): Promise<Sale> {
-  const res = await fetch(`${BASE}/${id}/cancel`, {
+  const res = await apiFetch(`${BASE}/${id}/cancel`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(dto),
   });
   if (!res.ok) {
@@ -51,7 +49,7 @@ export async function cancelSale(id: string, dto: CancelSaleDto): Promise<Sale> 
 }
 
 export async function fetchComprobante(id: string): Promise<ComprobanteData> {
-  const res = await fetch(`${BASE}/comprobante/${id}`);
+  const res = await apiFetch(`${BASE}/comprobante/${id}`);
   if (!res.ok) throw new Error('Error al obtener comprobante');
   return res.json();
 }

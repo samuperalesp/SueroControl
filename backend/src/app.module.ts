@@ -8,16 +8,22 @@ import { PurchaseModule } from './purchase.module';
 import { SaleModule } from './sale.module';
 import { PackageModule } from './package.module';
 import { InventoryMovementModule } from './inventory-movement.module';
+import { DashboardModule } from './dashboard.module';
+import { AuthModule } from './auth.module';
+import { UserModule } from './user.module';
 
 @Module({
   imports: [
     PrismaModule,
+    AuthModule,
+    UserModule,
     ProductModule,
     TerceroModule,
     PurchaseModule,
     SaleModule,
     PackageModule,
     InventoryMovementModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
