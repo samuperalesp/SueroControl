@@ -19,6 +19,8 @@ export class ProductService {
       id: uuidv4(),
       ...createProductDto,
       stockActual: createProductDto.stockActual || 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     return this.productRepository.create(newProduct);
   }

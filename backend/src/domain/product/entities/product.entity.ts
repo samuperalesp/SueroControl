@@ -9,4 +9,6 @@ export class Product {
   stockActual: number;
   stockMinimo: number;
   activo: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }

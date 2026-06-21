@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Inventory from './pages/Inventory';
+import Purchases from './pages/Purchases';
+import Sales from './pages/Sales';
+import Terceros from './pages/Terceros';
 
 function Dashboard() {
   return (
@@ -18,6 +21,9 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/inventario" element={<Inventory />} />
+          <Route path="/compras" element={<Purchases />} />
+          <Route path="/ventas" element={<Sales />} />
+          <Route path="/terceros" element={<Terceros />} />
         </Routes>
       </Layout>
     </BrowserRouter>

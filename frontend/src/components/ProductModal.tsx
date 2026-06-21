@@ -79,8 +79,8 @@ export default function ProductModal({ product, onSave, onClose }: Props) {
           </div>
           <NumberField label="Costo Compra" value={form.costoCompra} error={errors.costoCompra} onChange={v => setForm({ ...form, costoCompra: v })} />
           <NumberField label="Precio Venta" value={form.precioVenta} error={errors.precioVenta} onChange={v => setForm({ ...form, precioVenta: v })} />
-          <NumberField label="Stock Actual" value={form.stockActual} error={errors.stockActual} onChange={v => setForm({ ...form, stockActual: v })} />
-          <NumberField label="Stock Mínimo" value={form.stockMinimo} error={errors.stockMinimo} onChange={v => setForm({ ...form, stockMinimo: v })} />
+          <NumberField label="Stock Actual" value={form.stockActual} error={errors.stockActual} onChange={v => setForm({ ...form, stockActual: v })} step="1" />
+          <NumberField label="Stock Mínimo" value={form.stockMinimo} error={errors.stockMinimo} onChange={v => setForm({ ...form, stockMinimo: v })} step="1" />
         </div>
 
         <label className="flex items-center gap-2 mt-4 text-sm text-gray-700">
@@ -111,11 +111,11 @@ function Field({ label, value, error, onChange }: { label: string; value: string
   );
 }
 
-function NumberField({ label, value, error, onChange }: { label: string; value: number; error?: string; onChange: (v: number) => void }) {
+function NumberField({ label, value, error, onChange, step = '0.01' }: { label: string; value: number; error?: string; onChange: (v: number) => void; step?: string }) {
   return (
     <div className="flex flex-col gap-1">
       <label className="text-xs font-medium text-gray-600">{label}</label>
-      <input type="number" step="0.01" min={0} value={value} onChange={e => onChange(parseFloat(e.target.value) || 0)} className={`border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${error ? 'border-red-400' : 'border-gray-300'}`} />
+      <input type="number" step={step} min={0} value={value} onChange={e => onChange(parseFloat(e.target.value) || 0)} className={`border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${error ? 'border-red-400' : 'border-gray-300'}`} />
       {error && <span className="text-xs text-red-500">{error}</span>}
     </div>
   );

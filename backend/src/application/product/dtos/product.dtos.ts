@@ -1,4 +1,5 @@
-import { IsString, IsNumber, IsBoolean, Min, IsUUID, IsOptional } from 'class-validator';
+import { IsString, IsNumber, IsInt, IsBoolean, Min, IsUUID, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateProductDto {
@@ -22,12 +23,14 @@ export class CreateProductDto {
   @Min(0)
   precioVenta: number;
 
-  @IsNumber()
+  @IsInt()
   @Min(0)
+  @Type(() => Number)
   stockActual: number;
 
-  @IsNumber()
+  @IsInt()
   @Min(0)
+  @Type(() => Number)
   stockMinimo: number;
 
   @IsBoolean()
@@ -62,10 +65,10 @@ export class ProductResponseDto {
   @IsNumber()
   precioVenta: number;
 
-  @IsNumber()
+  @IsInt()
   stockActual: number;
 
-  @IsNumber()
+  @IsInt()
   stockMinimo: number;
 
   @IsBoolean()

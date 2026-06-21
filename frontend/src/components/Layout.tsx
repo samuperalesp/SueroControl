@@ -5,8 +5,7 @@ const links = [
   { to: '/inventario', label: 'Inventario' },
   { to: '/compras', label: 'Compras' },
   { to: '/ventas', label: 'Ventas' },
-  { to: '/pacientes', label: 'Pacientes' },
-  { to: '/facturacion', label: 'Facturación' },
+  { to: '/terceros', label: 'Terceros' },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
