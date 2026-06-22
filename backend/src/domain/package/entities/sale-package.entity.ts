@@ -2,6 +2,7 @@ export class SalePackage {
   id: string;
   saleId: string;
   packageId: string;
+  medicoId?: string;
   precioVenta: number;
   costoMedicamentos: number;
   costoOperativo: number;

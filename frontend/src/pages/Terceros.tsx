@@ -6,6 +6,7 @@ const tipoRelacionOptions = [
   { value: 'CLIENTE', label: 'Cliente' },
   { value: 'PROVEEDOR', label: 'Proveedor' },
   { value: 'CLIENTE_PROVEEDOR', label: 'Cliente y Proveedor' },
+  { value: 'MEDICO', label: 'Médico' },
 ];
 
 const documentoOptions = [
@@ -29,6 +30,7 @@ const emptyForm: CreateTerceroDto = {
   nombres: '',
   apellidos: '',
   razonSocial: '',
+  registroProfesional: '',
   direccion: '',
   ciudad: '',
   departamento: '',
@@ -79,6 +81,7 @@ export default function Terceros() {
       nombres: t.nombres || '',
       apellidos: t.apellidos || '',
       razonSocial: t.razonSocial || '',
+      registroProfesional: t.registroProfesional || '',
       direccion: t.direccion || '',
       ciudad: t.ciudad || '',
       departamento: t.departamento || '',
@@ -141,6 +144,7 @@ export default function Terceros() {
     CLIENTE: 'Cliente',
     PROVEEDOR: 'Proveedor',
     CLIENTE_PROVEEDOR: 'Cli/Prov',
+    MEDICO: 'Médico',
   };
 
   return (
@@ -165,6 +169,7 @@ export default function Terceros() {
                 <th className="px-4 py-3 font-medium">Nombre</th>
                 <th className="px-4 py-3 font-medium">Tipo</th>
                 <th className="px-4 py-3 font-medium">Relación</th>
+                <th className="px-4 py-3 font-medium">Reg. Prof.</th>
                 <th className="px-4 py-3 font-medium">Teléfono</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
                 <th className="px-4 py-3 font-medium">Acciones</th>
@@ -190,6 +195,7 @@ export default function Terceros() {
                       {relacionLabel[t.tipoRelacion] || t.tipoRelacion}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-gray-500">{t.tipoRelacion === 'MEDICO' ? (t.registroProfesional || '-') : '-'}</td>
                   <td className="px-4 py-3 text-gray-500">{t.telefono || '-'}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${t.activo ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -275,6 +281,12 @@ export default function Terceros() {
                 </div>
               )}
 
+              {form.tipoRelacion === 'MEDICO' && (
+                <div className="col-span-2">
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Registro Profesional</label>
+                  <input value={form.registroProfesional || ''} onChange={e => setForm({ ...form, registroProfesional: e.target.value })} placeholder="Opcional" className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none" />
+                </div>
+              )}
               <div>
                 <label className="text-xs font-medium text-gray-600 mb-1 block">Teléfono</label>
                 <input value={form.telefono || ''} onChange={e => setForm({ ...form, telefono: e.target.value })} className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none" />

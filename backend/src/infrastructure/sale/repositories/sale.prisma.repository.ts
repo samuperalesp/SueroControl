@@ -13,6 +13,7 @@ export class SalePrismaRepository implements ISaleRepository {
   async createWithDetails(data: {
     consecutivo: number;
     terceroId?: string;
+    medicoId?: string;
     total: number;
     costoTotal?: number;
     utilidadTotal?: number;
@@ -24,6 +25,7 @@ export class SalePrismaRepository implements ISaleRepository {
       data: {
         consecutivo: data.consecutivo,
         terceroId: data.terceroId,
+        medicoId: data.medicoId,
         total: data.total,
         costoTotal: data.costoTotal,
         utilidadTotal: data.utilidadTotal,

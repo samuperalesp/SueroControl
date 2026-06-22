@@ -41,27 +41,30 @@ model Product {
 }
 
 model Tercero {
-  id                String   @id @default(uuid())
-  tipoRelacion      String   @default("CLIENTE")
-  tipoPersona       String
-  tipoDocumento     String
-  numeroDocumento   String
-  digitoVerificacion String?
-  nombres           String?
-  apellidos         String?
-  razonSocial       String?
-  direccion         String?
-  ciudad            String?
-  departamento      String?
-  telefono          String?
-  email             String?
-  observaciones     String?
-  activo            Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                  String   @id @default(uuid())
+  tipoRelacion        String   @default("CLIENTE")
+  tipoPersona         String
+  tipoDocumento       String
+  numeroDocumento     String
+  digitoVerificacion  String?
+  nombres             String?
+  apellidos           String?
+  razonSocial         String?
+  registroProfesional String?
+  direccion           String?
+  ciudad              String?
+  departamento        String?
+  telefono            String?
+  email               String?
+  observaciones       String?
+  activo              Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  purchases Purchase[]
-  sales     Sale[]
+  purchases            Purchase[]
+  sales                Sale[]
+  medicoSales          Sale[]           @relation("MedicoSales")
+  salePackagesMedico   SalePackage[]
 
   @@unique([tipoDocumento, numeroDocumento])
 }
@@ -97,6 +100,7 @@ model Sale {
   id             String    @id @default(uuid())
   consecutivo    Int       @default(0)
   terceroId      String?
+  medicoId       String?
   total          Float
   costoTotal     Float?
   utilidadTotal  Float?
@@ -108,6 +112,7 @@ model Sale {
   createdAt      DateTime  @default(now())
 
   tercero      Tercero?      @relation(fields: [terceroId], references: [id])
+  medico       Tercero?      @relation("MedicoSales", fields: [medicoId], references: [id])
   details      SaleDetail[]
   salePackages SalePackage[]
 }
@@ -166,6 +171,7 @@ model SalePackage {
   id                String   @id @default(uuid())
   saleId            String
   packageId         String
+  medicoId          String?
   precioVenta       Float
   costoMedicamentos Float
   costoOperativo    Float
@@ -177,8 +183,9 @@ model SalePackage {
   gananciaCentro    Float
   createdAt         DateTime @default(now())
 
-  sale    Sale    @relation(fields: [saleId], references: [id])
-  package Package @relation(fields: [packageId], references: [id])
+  sale    Sale     @relation(fields: [saleId], references: [id])
+  package Package  @relation(fields: [packageId], references: [id])
+  medico  Tercero? @relation(fields: [medicoId], references: [id])
 }
 
 model InventoryMovement {

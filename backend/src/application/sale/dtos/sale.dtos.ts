@@ -3,7 +3,12 @@ import { Type } from 'class-transformer';
 
 export class SaleDetailDto {
   @IsString()
-  productId: string;
+  @IsOptional()
+  productId?: string;
+
+  @IsString()
+  @IsOptional()
+  packageId?: string;
 
   @IsNumber()
   @Min(1)
@@ -18,6 +23,9 @@ export class CreateSaleDto {
   @IsString()
   @IsOptional()
   terceroId?: string;
+
+  @IsString()
+  medicoId: string;
 
   @IsArray()
   @ValidateNested({ each: true })

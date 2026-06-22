@@ -21,6 +21,7 @@ export interface ISaleRepository {
   createWithDetails(data: {
     consecutivo: number;
     terceroId?: string;
+    medicoId?: string;
     total: number;
     costoTotal?: number;
     utilidadTotal?: number;
@@ -32,6 +33,6 @@ export interface ISaleRepository {
   findById(id: string): Promise<Sale | null>;
   findByConsecutivo(consecutivo: number): Promise<Sale | null>;
   findMaxConsecutivo(): Promise<number>;
-  update(id: string, data: { terceroId?: string; total?: number; details?: SaleDetailData[] }): Promise<Sale>;
+  update(id: string, data: { terceroId?: string; medicoId?: string; total?: number; details?: SaleDetailData[] }): Promise<Sale>;
   cancel(id: string, motivo: string): Promise<Sale>;
 }

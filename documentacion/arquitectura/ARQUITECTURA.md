@@ -152,13 +152,14 @@ SueroControl/
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
 | id | UUID | ID único |
-| tipoRelacion | String | CLIENTE, PROVEEDOR o CLIENTE_PROVEEDOR |
+| tipoRelacion | String | CLIENTE, PROVEEDOR, CLIENTE_PROVEEDOR o MEDICO |
 | tipoPersona | String | NATURAL o JURIDICA |
 | tipoDocumento | String | Tipo de documento (DNI, RUC, CE) |
 | numeroDocumento | String (único) | Número de documento |
 | nombres | String? | Nombres (Persona Natural) |
 | apellidos | String? | Apellidos (Persona Natural) |
 | razonSocial | String? | Razón Social (Persona Jurídica) |
+| registroProfesional | String? | Registro profesional (solo para MEDICO) |
 | direccion | String? | Dirección |
 | ciudad | String? | Ciudad |
 | departamento | String? | Departamento |
@@ -178,8 +179,10 @@ SueroControl/
 
 ### Sale / SaleDetail
 - Venta con múltiples detalles (producto, cantidad, precio unitario).
-- Asociada a un Tercero de tipo CLIENTE o CLIENTE_PROVEEDOR.
+- Asociada a un Tercero de tipo CLIENTE o CLIENTE_PROVEEDOR (cliente).
+- Asociada obligatoriamente a un Tercero de tipo MEDICO (médico responsable).
 - `consecutivo`: número de comprobante interno auto-generado.
+- `medicoId`: ID del médico responsable de la venta.
 - Soporta venta directa y venta por paquete (campo packageId opcional).
 - Cada venta genera automáticamente el comprobante (no existe módulo de facturación separado).
 - Al registrar: descuenta stock + valida existencia + crea InventoryMovement tipo EXIT.
@@ -194,11 +197,14 @@ SueroControl/
 ### SalePackage
 - Snapshot histórico de rentabilidad por venta de paquete.
 - Almacena precioVenta, costoMedicamentos, costoOperativo, costoTotal, utilidad, porcentajes y ganancias.
+- `medicoId`: snapshot del médico responsable al momento de la venta.
 - Los cálculos no cambian aunque varíen los costos de productos posteriormente.
+- No se modifica aunque cambien porcentajes o configuraciones posteriores.
 
 ### Dashboard
 - Endpoint `GET /dashboard` con datos reales desde PostgreSQL.
-- Ventas Totales, Costos Totales, Ganancia Médicos, Ganancia Centro.
+- Ventas Totales, Costos Totales, Ganancia Centro (acumulada globalmente).
+- Top Médicos por Utilidad: ranking de médicos ordenado por ganancia médica acumulada (descendente).
 - Todos los cálculos provienen de la base de datos (sin datos simulados).
 
 ### InventoryMovement (Kardex)
@@ -241,7 +247,7 @@ SueroControl/
 | GET | /purchases/:id | Obtener compra |
 | PUT | /purchases/:id/convert | Convertir pedido a compra |
 | GET | /sales | Listar ventas |
-| POST | /sales | Registrar venta |
+| POST | /sales | Registrar venta (requiere medicoId) |
 | GET | /sales/:id | Obtener venta |
 | GET | /packages | Listar paquetes |
 | POST | /packages | Crear paquete |

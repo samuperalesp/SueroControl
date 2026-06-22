@@ -8,6 +8,7 @@ export class Tercero {
   nombres?: string;
   apellidos?: string;
   razonSocial?: string;
+  registroProfesional?: string;
   direccion?: string;
   ciudad?: string;
   departamento?: string;

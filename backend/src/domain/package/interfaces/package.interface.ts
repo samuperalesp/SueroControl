@@ -49,6 +49,7 @@ export interface ISalePackageRepository {
   create(data: {
     saleId: string;
     packageId: string;
+    medicoId?: string;
     precioVenta: number;
     costoMedicamentos: number;
     costoOperativo: number;

@@ -27,6 +27,7 @@ export class TerceroService {
     tercero.nombres = dto.nombres;
     tercero.apellidos = dto.apellidos;
     tercero.razonSocial = dto.razonSocial;
+    tercero.registroProfesional = dto.registroProfesional;
     tercero.direccion = dto.direccion;
     tercero.ciudad = dto.ciudad;
     tercero.departamento = dto.departamento;

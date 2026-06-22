@@ -1,14 +1,17 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Sale } from '../types/sale';
+import type { Sale, ComprobanteData } from '../types/sale';
 import type { Product } from '../types/product';
 import type { Tercero } from '../types/tercero';
-import type { ComprobanteData } from '../types/sale';
+import type { Package } from '../types/package';
 import { fetchSales, createSale, updateSale, cancelSale, fetchComprobante } from '../api/saleApi';
 import { fetchProducts } from '../api/productApi';
+import { fetchPackages } from '../api/packageApi';
 import { fetchTerceros } from '../api/terceroApi';
 
 interface LineItem {
-  productId: string;
+  type: 'PRODUCT' | 'PACKAGE';
+  productId?: string;
+  packageId?: string;
   quantity: number;
   unitPrice: number;
 }
@@ -16,6 +19,7 @@ interface LineItem {
 export default function Sales() {
   const [sales, setSales] = useState<Sale[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [packages, setPackages] = useState<Package[]>([]);
   const [terceros, setTerceros] = useState<Tercero[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +31,7 @@ export default function Sales() {
 
   // Create modal
   const [showCreate, setShowCreate] = useState(false);
-  const [items, setItems] = useState<LineItem[]>([{ productId: '', quantity: 1, unitPrice: 0 }]);
+  const [items, setItems] = useState<LineItem[]>([{ type: 'PRODUCT', productId: '', quantity: 1, unitPrice: 0 }]);
   const [searchTexts, setSearchTexts] = useState<string[]>(['']);
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
   const searchRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -35,6 +39,10 @@ export default function Sales() {
   const [selectedClienteId, setSelectedClienteId] = useState('');
   const [showClienteDropdown, setShowClienteDropdown] = useState(false);
   const clienteRef = useRef<HTMLDivElement | null>(null);
+  const [medicoSearch, setMedicoSearch] = useState('');
+  const [selectedMedicoId, setSelectedMedicoId] = useState('');
+  const [showMedicoDropdown, setShowMedicoDropdown] = useState(false);
+  const medicoRef = useRef<HTMLDivElement | null>(null);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -61,12 +69,14 @@ export default function Sales() {
   const [comprobanteLoading, setComprobanteLoading] = useState(false);
 
   const clientes = terceros.filter(t => (t.tipoRelacion === 'CLIENTE' || t.tipoRelacion === 'CLIENTE_PROVEEDOR') && t.activo);
+  const medicos = terceros.filter(t => t.tipoRelacion === 'MEDICO' && t.activo);
 
   // Close dropdowns on outside click
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (openDropdown !== null && searchRefs.current[openDropdown] && !searchRefs.current[openDropdown]!.contains(e.target as Node)) setOpenDropdown(null);
       if (clienteRef.current && !clienteRef.current.contains(e.target as Node)) setShowClienteDropdown(false);
+      if (medicoRef.current && !medicoRef.current.contains(e.target as Node)) setShowMedicoDropdown(false);
       if (editClienteRef.current && !editClienteRef.current.contains(e.target as Node)) setEditShowDropdown(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -80,9 +90,10 @@ export default function Sales() {
       if (cons) params.consecutivo = parseInt(cons);
       if (from) params.fechaDesde = from;
       if (to) params.fechaHasta = to;
-      const [salesData, productsData, tercerosData] = await Promise.all([
+      const [salesData, productsData, packagesData, tercerosData] = await Promise.all([
         fetchSales(Object.keys(params).length ? params : undefined),
         fetchProducts(),
+        fetchPackages(),
         fetchTerceros(),
       ]);
       let filtered = salesData;
@@ -98,6 +109,7 @@ export default function Sales() {
       }
       setSales(filtered);
       setProducts(productsData);
+      setPackages(packagesData);
       setTerceros(tercerosData);
     } catch (e) {
       console.error(e);
@@ -108,27 +120,49 @@ export default function Sales() {
 
   useEffect(() => { load(); }, [load]);
 
-  function getFiltered(search: string) {
+  function getFilteredProducts(search: string) {
     if (!search.trim()) return [];
     const q = search.toLowerCase();
     return products.filter(p => p.activo && (p.codigo.toLowerCase().includes(q) || p.nombre.toLowerCase().includes(q)));
   }
 
+  function getFilteredPackages(search: string) {
+    if (!search.trim()) return [];
+    const q = search.toLowerCase();
+    return packages.filter(p => p.activo && p.nombre.toLowerCase().includes(q));
+  }
+
   function selectProduct(idx: number, product: Product) {
     setItems(items.map((item, i) =>
-      i === idx ? { ...item, productId: product.id, unitPrice: product.precioVenta } : item
+      i === idx ? { ...item, type: 'PRODUCT', productId: product.id, packageId: undefined, unitPrice: product.precioVenta } : item
     ));
     setSearchTexts(searchTexts.map((t, i) => i === idx ? `${product.codigo} - ${product.nombre}` : t));
+    setOpenDropdown(null);
+  }
+
+  function selectPackage(idx: number, pkg: Package) {
+    setItems(items.map((item, i) =>
+      i === idx ? { ...item, type: 'PACKAGE', packageId: pkg.id, productId: undefined, unitPrice: pkg.precio } : item
+    ));
+    setSearchTexts(searchTexts.map((t, i) => i === idx ? pkg.nombre : t));
     setOpenDropdown(null);
   }
 
   function updateSearch(idx: number, value: string) {
     setSearchTexts(searchTexts.map((t, i) => i === idx ? value : t));
     setOpenDropdown(idx);
-    if (!value.trim()) setItems(items.map((item, i) => i === idx ? { ...item, productId: '' } : item));
+    if (!value.trim()) setItems(items.map((item, i) => i === idx ? { ...item, type: 'PRODUCT', productId: undefined, packageId: undefined } : item));
   }
 
-  function addItem() { setItems([...items, { productId: '', quantity: 1, unitPrice: 0 }]); setSearchTexts([...searchTexts, '']); }
+  function setItemType(idx: number, type: 'PRODUCT' | 'PACKAGE') {
+    setItems(items.map((item, i) =>
+      i === idx ? { type, productId: undefined, packageId: undefined, quantity: 1, unitPrice: 0 } : item
+    ));
+    setSearchTexts(searchTexts.map((t, i) => i === idx ? '' : t));
+    setOpenDropdown(null);
+  }
+
+  function addItem() { setItems([...items, { type: 'PRODUCT', productId: '', quantity: 1, unitPrice: 0 }]); setSearchTexts([...searchTexts, '']); }
   function removeItem(idx: number) {
     if (items.length <= 1) return;
     setItems(items.filter((_, i) => i !== idx));
@@ -142,14 +176,22 @@ export default function Sales() {
     setShowClienteDropdown(false);
   }
 
+  function selectMedico(t: Tercero) {
+    setSelectedMedicoId(t.id);
+    setMedicoSearch(`${t.nombres} ${t.apellidos}`);
+    setShowMedicoDropdown(false);
+  }
+
   function validate(): boolean {
     const errs: Record<string, string> = {};
+    if (!selectedMedicoId) errs.medico = 'Seleccione un médico';
     for (let i = 0; i < items.length; i++) {
-      if (!items[i].productId) errs[`item-${i}-product`] = 'Seleccione un producto';
+      if (items[i].type === 'PRODUCT' && !items[i].productId) errs[`item-${i}-product`] = 'Seleccione un producto';
+      if (items[i].type === 'PACKAGE' && !items[i].packageId) errs[`item-${i}-product`] = 'Seleccione un paquete';
       if (items[i].quantity < 1) errs[`item-${i}-qty`] = 'Cantidad inválida';
       if (items[i].unitPrice < 0) errs[`item-${i}-price`] = 'Precio inválido';
     }
-    if (items.length === 0) errs.general = 'Agregue al menos un producto';
+    if (items.length === 0) errs.general = 'Agregue al menos un producto o paquete';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -159,7 +201,7 @@ export default function Sales() {
     if (!validate()) return;
     setSaving(true);
     try {
-      await createSale({ terceroId: selectedClienteId || undefined, details: items });
+      await createSale({ terceroId: selectedClienteId || undefined, medicoId: selectedMedicoId, details: items });
       resetCreateModal();
       load();
     } catch (e: any) { setErrors({ general: e.message }); }
@@ -168,10 +210,12 @@ export default function Sales() {
 
   function resetCreateModal() {
     setShowCreate(false);
-    setItems([{ productId: '', quantity: 1, unitPrice: 0 }]);
+    setItems([{ type: 'PRODUCT', productId: '', quantity: 1, unitPrice: 0 }]);
     setSearchTexts(['']);
     setClienteSearch('');
     setSelectedClienteId('');
+    setMedicoSearch('');
+    setSelectedMedicoId('');
     setErrors({});
   }
 
@@ -248,12 +292,30 @@ export default function Sales() {
   }
 
   const createTotal = items.reduce((sum, item) => {
-    const product = products.find(p => p.id === item.productId);
-    return sum + item.quantity * (item.unitPrice || product?.precioVenta || 0);
+    if (item.type === 'PRODUCT') {
+      const product = products.find(p => p.id === item.productId);
+      return sum + item.quantity * (item.unitPrice || product?.precioVenta || 0);
+    }
+    if (item.type === 'PACKAGE') {
+      const pkg = packages.find(p => p.id === item.packageId);
+      return sum + item.quantity * (item.unitPrice || pkg?.precio || 0);
+    }
+    return sum;
   }, 0);
 
-  function getProductName(id: string) {
-    return products.find(p => p.id === id)?.nombre || id;
+  function getItemName(id: string | undefined, type?: string) {
+    if (!id) return '-';
+    if (type === 'PACKAGE') {
+      return packages.find(p => p.id === id)?.nombre || id;
+    }
+    const p = products.find(p => p.id === id);
+    return p ? `${p.codigo} - ${p.nombre}` : id;
+  }
+
+  function getPackageComponents(pkgId: string | undefined) {
+    if (!pkgId) return [];
+    const pkg = packages.find(p => p.id === pkgId);
+    return pkg?.details || [];
   }
 
   function getClienteName(sale: Sale) {
@@ -325,6 +387,7 @@ export default function Sales() {
                 <th className="px-4 py-3 font-medium">Comprobante</th>
                 <th className="px-4 py-3 font-medium">Fecha</th>
                 <th className="px-4 py-3 font-medium">Cliente</th>
+                <th className="px-4 py-3 font-medium">Médico</th>
                 <th className="px-4 py-3 font-medium">Productos</th>
                 <th className="px-4 py-3 font-medium">Total</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
@@ -340,8 +403,14 @@ export default function Sales() {
                     <div>{getClienteName(s)}</div>
                     <div className="text-xs text-gray-400">{getClienteDoc(s)}</div>
                   </td>
+                  <td className="px-4 py-3 text-gray-800">
+                    {s.medicoId ? (() => { const m = terceros.find(t => t.id === s.medicoId); return m ? `${m.nombres} ${m.apellidos}` : s.medicoId; })() : '-'}
+                  </td>
                   <td className="px-4 py-3 text-gray-500">
-                    {s.details?.map(d => `${d.productId ? getProductName(d.productId) : 'Paquete'} x${d.quantity}`).join(', ')}
+                    {s.details?.map(d => {
+                      if (d.packageId) return `${getItemName(d.packageId, 'PACKAGE')} x${d.quantity}`;
+                      return `${getItemName(d.productId)} x${d.quantity}`;
+                    }).join(', ')}
                   </td>
                   <td className="px-4 py-3 text-gray-700 font-medium">${s.total.toFixed(2)}</td>
                   <td className="px-4 py-3">
@@ -398,42 +467,109 @@ export default function Sales() {
               )}
             </div>
 
+            <div ref={medicoRef} className="relative mb-4">
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Médico <span className="text-red-500">*</span></label>
+              <input type="text" value={medicoSearch} onChange={e => { setMedicoSearch(e.target.value); setSelectedMedicoId(''); setShowMedicoDropdown(true); }}
+                onFocus={() => setShowMedicoDropdown(true)} placeholder="Buscar médico..." autoComplete="off"
+                className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.medico ? 'border-red-400' : 'border-gray-300'}`} />
+              {errors.medico && <p className="text-xs text-red-500 mt-1">{errors.medico}</p>}
+              {showMedicoDropdown && (
+                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                  {medicos.filter(m => {
+                    const name = `${m.nombres} ${m.apellidos}`;
+                    return name.toLowerCase().includes(medicoSearch.toLowerCase()) || m.numeroDocumento.includes(medicoSearch) || (m.registroProfesional || '').includes(medicoSearch);
+                  }).map(m => (
+                    <li key={m.id} onClick={() => selectMedico(m)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                      {m.nombres} {m.apellidos} - {m.numeroDocumento} {m.registroProfesional ? `(Reg: ${m.registroProfesional})` : ''}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
             <div className="space-y-3">
               {items.map((item, idx) => {
-                const filtered = getFiltered(searchTexts[idx]);
+                const productFiltered = getFilteredProducts(searchTexts[idx]);
+                const packageFiltered = getFilteredPackages(searchTexts[idx]);
+                const selectedPackage = item.packageId ? packages.find(p => p.id === item.packageId) : null;
+                const components = selectedPackage ? getPackageComponents(item.packageId) : [];
                 return (
-                  <div key={idx} className="flex gap-3 items-end border border-gray-200 rounded-lg p-3">
-                    <div className="flex-1 relative" ref={el => { searchRefs.current[idx] = el; }}>
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">Producto</label>
-                      <input type="text" placeholder="Buscar por código o nombre..." value={searchTexts[idx]} onChange={e => updateSearch(idx, e.target.value)} onFocus={() => setOpenDropdown(idx)} autoComplete="off"
-                        className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-product`] ? 'border-red-400' : 'border-gray-300'}`} />
-                      {openDropdown === idx && filtered.length > 0 && (
-                        <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                          {filtered.map(p => (
-                            <li key={p.id} onClick={() => selectProduct(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
-                              <span className="font-medium">{p.codigo}</span>
-                              <span className="text-gray-500 ml-2">{p.nombre}</span>
-                              <span className="text-gray-400 ml-auto">Stock: {p.stockActual}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                  <div key={idx} className="border border-gray-200 rounded-lg p-3">
+                    <div className="flex gap-2 mb-2">
+                      <button type="button" onClick={() => setItemType(idx, 'PRODUCT')}
+                        className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer ${item.type === 'PRODUCT' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        Producto
+                      </button>
+                      <button type="button" onClick={() => setItemType(idx, 'PACKAGE')}
+                        className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer ${item.type === 'PACKAGE' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        Paquete
+                      </button>
                     </div>
-                    <div className="w-24">
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">Cantidad</label>
-                      <input type="number" min={1} value={item.quantity} onChange={e => setItems(items.map((it, i) => i === idx ? { ...it, quantity: parseInt(e.target.value) || 0 } : it))}
-                        className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-qty`] ? 'border-red-400' : 'border-gray-300'}`} />
+                    <div className="flex gap-3 items-end">
+                      <div className="flex-1 relative" ref={el => { searchRefs.current[idx] = el; }}>
+                        <label className="text-xs font-medium text-gray-600 mb-1 block">
+                          {item.type === 'PRODUCT' ? 'Producto' : 'Paquete'}
+                        </label>
+                        <input type="text"
+                          placeholder={item.type === 'PRODUCT' ? 'Buscar por código o nombre...' : 'Buscar paquete por nombre...'}
+                          value={searchTexts[idx]}
+                          onChange={e => updateSearch(idx, e.target.value)}
+                          onFocus={() => setOpenDropdown(idx)}
+                          autoComplete="off"
+                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-product`] ? 'border-red-400' : 'border-gray-300'}`} />
+                        {openDropdown === idx && item.type === 'PRODUCT' && productFiltered.length > 0 && (
+                          <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                            {productFiltered.map(p => (
+                              <li key={p.id} onClick={() => selectProduct(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
+                                <span className="font-medium">{p.codigo}</span>
+                                <span className="text-gray-500 ml-2">{p.nombre}</span>
+                                <span className="text-gray-400 ml-auto">Stock: {p.stockActual}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        {openDropdown === idx && item.type === 'PACKAGE' && packageFiltered.length > 0 && (
+                          <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                            {packageFiltered.map(p => (
+                              <li key={p.id} onClick={() => selectPackage(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
+                                <span className="font-medium">{p.nombre}</span>
+                                <span className="text-gray-400 ml-auto">${p.precio.toFixed(2)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                      <div className="w-24">
+                        <label className="text-xs font-medium text-gray-600 mb-1 block">Cantidad</label>
+                        <input type="number" min={1} value={item.quantity} onChange={e => setItems(items.map((it, i) => i === idx ? { ...it, quantity: parseInt(e.target.value) || 0 } : it))}
+                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-qty`] ? 'border-red-400' : 'border-gray-300'}`} />
+                      </div>
+                      <div className="w-28">
+                        <label className="text-xs font-medium text-gray-600 mb-1 block">Precio Unit.</label>
+                        <input type="number" step="0.01" min={0} value={item.unitPrice} onChange={e => setItems(items.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(e.target.value) || 0 } : it))}
+                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-price`] ? 'border-red-400' : 'border-gray-300'}`} />
+                      </div>
+                      <div className="w-20 text-right">
+                        <label className="text-xs font-medium text-gray-600 mb-1 block">Subtotal</label>
+                        <p className="text-sm text-gray-800 py-2">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</p>
+                      </div>
+                      <button type="button" onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-700 text-lg cursor-pointer pb-1">×</button>
                     </div>
-                    <div className="w-28">
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">Precio Unit.</label>
-                      <input type="number" step="0.01" min={0} value={item.unitPrice} onChange={e => setItems(items.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(e.target.value) || 0 } : it))}
-                        className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-price`] ? 'border-red-400' : 'border-gray-300'}`} />
-                    </div>
-                    <div className="w-20 text-right">
-                      <label className="text-xs font-medium text-gray-600 mb-1 block">Subtotal</label>
-                      <p className="text-sm text-gray-800 py-2">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</p>
-                    </div>
-                    <button type="button" onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-700 text-lg cursor-pointer pb-1">×</button>
+                    {item.type === 'PACKAGE' && components.length > 0 && (
+                      <div className="mt-2 ml-1">
+                        <p className="text-xs font-medium text-gray-500 mb-1">Componentes del paquete:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {components.map((comp, ci) => {
+                            const prod = products.find(p => p.id === comp.productId);
+                            return (
+                              <span key={ci} className="text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-600">
+                                {prod ? `${prod.nombre}` : comp.productId} x{comp.quantity * item.quantity}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -552,7 +688,7 @@ export default function Sales() {
                   <tbody className="divide-y divide-gray-100">
                     {comprobanteData.items.map((item, i) => (
                       <tr key={i}>
-                        <td className="px-2 py-2">{getProductName(item.producto)}</td>
+                        <td className="px-2 py-2">{item.producto}</td>
                         <td className="text-center px-2 py-2">{item.cantidad}</td>
                         <td className="text-right px-2 py-2">${item.precioUnitario.toFixed(2)}</td>
                         <td className="text-right px-2 py-2">${item.subtotal.toFixed(2)}</td>

@@ -46,6 +46,10 @@ export default function Packages() {
   const [selectedClienteId, setSelectedClienteId] = useState('');
   const [showClienteDropdown, setShowClienteDropdown] = useState(false);
   const clienteRef = useRef<HTMLDivElement | null>(null);
+  const [medicoSearchPkg, setMedicoSearchPkg] = useState('');
+  const [selectedMedicoIdPkg, setSelectedMedicoIdPkg] = useState('');
+  const [showMedicoDropdownPkg, setShowMedicoDropdownPkg] = useState(false);
+  const medicoRefPkg = useRef<HTMLDivElement | null>(null);
   const [sellSaving, setSellSaving] = useState(false);
   const [sellResult, setSellResult] = useState<any>(null);
 
@@ -53,11 +57,13 @@ export default function Packages() {
   const [showDelete, setShowDelete] = useState<string | null>(null);
 
   const clientes = terceros.filter(t => (t.tipoRelacion === 'CLIENTE' || t.tipoRelacion === 'CLIENTE_PROVEEDOR') && t.activo);
+  const medicos = terceros.filter(t => t.tipoRelacion === 'MEDICO' && t.activo);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (openDropdown !== null && searchRefs.current[openDropdown] && !searchRefs.current[openDropdown]!.contains(e.target as Node)) setOpenDropdown(null);
       if (clienteRef.current && !clienteRef.current.contains(e.target as Node)) setShowClienteDropdown(false);
+      if (medicoRefPkg.current && !medicoRefPkg.current.contains(e.target as Node)) setShowMedicoDropdownPkg(false);
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -209,15 +215,21 @@ export default function Packages() {
     setSellingPackage(pkg);
     setClienteSearch('');
     setSelectedClienteId('');
+    setMedicoSearchPkg('');
+    setSelectedMedicoIdPkg('');
     setShowSellModal(true);
     setSellResult(null);
   }
 
   async function handleSell() {
     if (!sellingPackage) return;
+    if (!selectedMedicoIdPkg) {
+      setErrors({ sell: 'Debe seleccionar un médico' });
+      return;
+    }
     setSellSaving(true);
     try {
-      const result = await sellPackage(sellingPackage.id, selectedClienteId || undefined);
+      const result = await sellPackage(sellingPackage.id, selectedClienteId || undefined, selectedMedicoIdPkg);
       setSellResult(result);
     } catch (e: any) { setErrors({ sell: e.message }); }
     finally { setSellSaving(false); }
@@ -227,6 +239,12 @@ export default function Packages() {
     setSelectedClienteId(t.id);
     setClienteSearch(t.tipoPersona === 'NATURAL' ? `${t.nombres} ${t.apellidos}` : t.razonSocial || '');
     setShowClienteDropdown(false);
+  }
+
+  function selectMedicoPkg(t: Tercero) {
+    setSelectedMedicoIdPkg(t.id);
+    setMedicoSearchPkg(`${t.nombres} ${t.apellidos}`);
+    setShowMedicoDropdownPkg(false);
   }
 
   const costoMedicamentosCalc = details.reduce((sum, d) => {
@@ -498,6 +516,24 @@ export default function Packages() {
                       }).map(c => (
                         <li key={c.id} onClick={() => selectCliente(c)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
                           {c.tipoPersona === 'NATURAL' ? `${c.nombres} ${c.apellidos}` : c.razonSocial} - {c.numeroDocumento}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+                <div ref={medicoRefPkg} className="relative mb-4">
+                  <label className="text-xs font-medium text-gray-600 mb-1 block">Médico <span className="text-red-500">*</span></label>
+                  <input type="text" value={medicoSearchPkg} onChange={e => { setMedicoSearchPkg(e.target.value); setSelectedMedicoIdPkg(''); setShowMedicoDropdownPkg(true); }}
+                    onFocus={() => setShowMedicoDropdownPkg(true)} placeholder="Buscar médico..." autoComplete="off"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                  {showMedicoDropdownPkg && (
+                    <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                      {medicos.filter(m => {
+                        const name = `${m.nombres} ${m.apellidos}`;
+                        return name.toLowerCase().includes(medicoSearchPkg.toLowerCase()) || m.numeroDocumento.includes(medicoSearchPkg) || (m.registroProfesional || '').includes(medicoSearchPkg);
+                      }).map(m => (
+                        <li key={m.id} onClick={() => selectMedicoPkg(m)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                          {m.nombres} {m.apellidos} - {m.numeroDocumento}
                         </li>
                       ))}
                     </ul>

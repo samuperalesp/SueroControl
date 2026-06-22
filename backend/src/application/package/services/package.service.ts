@@ -7,6 +7,8 @@ import { INVENTORY_MOVEMENT_REPOSITORY } from '../../../domain/inventory-movemen
 import type { IInventoryMovementRepository } from '../../../domain/inventory-movement/interfaces/inventory-movement.interface';
 import { SALE_REPOSITORY } from '../../../domain/sale/interfaces/sale.interface';
 import type { ISaleRepository } from '../../../domain/sale/interfaces/sale.interface';
+import { TERCERO_REPOSITORY } from '../../../domain/tercero/interfaces/tercero.interface';
+import type { ITerceroRepository } from '../../../domain/tercero/interfaces/tercero.interface';
 import { Package } from '../../../domain/package/entities/package.entity';
 import { CreatePackageDto, UpdatePackageDto } from '../dtos/package.dtos';
 import { SalePackage } from '../../../domain/package/entities/sale-package.entity';
@@ -19,6 +21,7 @@ export class PackageService {
     @Inject(INVENTORY_MOVEMENT_REPOSITORY) private readonly movementRepository: IInventoryMovementRepository,
     @Inject(SALE_REPOSITORY) private readonly saleRepository: ISaleRepository,
     @Inject(SALE_PACKAGE_REPOSITORY) private readonly salePackageRepository: ISalePackageRepository,
+    @Inject(TERCERO_REPOSITORY) private readonly terceroRepository: ITerceroRepository,
   ) {}
 
   async create(dto: CreatePackageDto): Promise<Package> {
@@ -96,10 +99,18 @@ export class PackageService {
     return this.packageRepository.delete(id);
   }
 
-  async sellPackage(packageId: string, terceroId?: string) {
+  async sellPackage(packageId: string, terceroId?: string, medicoId?: string) {
     const pkg = await this.findById(packageId);
     if (!pkg.details || pkg.details.length === 0) {
       throw new BadRequestException('Package has no details');
+    }
+
+    if (medicoId) {
+      const medico = await this.terceroRepository.findById(medicoId);
+      if (!medico) throw new NotFoundException('Médico no encontrado');
+      if (medico.tipoRelacion !== 'MEDICO') {
+        throw new BadRequestException('El tercero debe ser de tipo MEDICO');
+      }
     }
 
     // Calculate medication costs from current product costs
@@ -149,6 +160,7 @@ export class PackageService {
     const sale = await this.saleRepository.createWithDetails({
       consecutivo,
       terceroId,
+      medicoId,
       total: pkg.precio,
       costoTotal,
       utilidadTotal: utilidad,
@@ -163,10 +175,11 @@ export class PackageService {
       }],
     });
 
-    // Create SalePackage snapshot
+    // Create SalePackage snapshot with medicoId
     await this.salePackageRepository.create({
       saleId: sale.id,
       packageId: pkg.id,
+      medicoId,
       precioVenta: pkg.precio,
       costoMedicamentos,
       costoOperativo,

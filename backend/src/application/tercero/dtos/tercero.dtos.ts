@@ -5,7 +5,7 @@ const DOCUMENTOS_CO = ['CC', 'CE', 'NIT', 'PAS', 'TI'] as const;
 
 export class CreateTerceroDto {
   @IsString()
-  @IsIn(['CLIENTE', 'PROVEEDOR', 'CLIENTE_PROVEEDOR'])
+  @IsIn(['CLIENTE', 'PROVEEDOR', 'CLIENTE_PROVEEDOR', 'MEDICO'])
   tipoRelacion: string;
 
   @IsString()
@@ -34,6 +34,10 @@ export class CreateTerceroDto {
   @IsString()
   @IsOptional()
   razonSocial?: string;
+
+  @IsString()
+  @IsOptional()
+  registroProfesional?: string;
 
   @IsString()
   @IsOptional()

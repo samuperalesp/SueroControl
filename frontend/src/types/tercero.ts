@@ -8,6 +8,7 @@ export interface Tercero {
   nombres?: string;
   apellidos?: string;
   razonSocial?: string;
+  registroProfesional?: string;
   direccion?: string;
   ciudad?: string;
   departamento?: string;
@@ -26,6 +27,7 @@ export interface CreateTerceroDto {
   nombres?: string;
   apellidos?: string;
   razonSocial?: string;
+  registroProfesional?: string;
   direccion?: string;
   ciudad?: string;
   departamento?: string;

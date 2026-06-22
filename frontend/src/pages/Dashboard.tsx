@@ -61,16 +61,16 @@ export default function Dashboard() {
       color: 'bg-orange-50 text-orange-700',
     },
     {
-      title: 'Ganancia Médicos',
-      value: formatCOP(data?.gananciaMedicos || 0),
-      subtitle: 'Utilidad distribuida a médicos',
-      color: 'bg-green-50 text-green-700',
-    },
-    {
       title: 'Ganancia Centro',
       value: formatCOP(data?.gananciaCentro || 0),
       subtitle: 'Utilidad distribuida al centro',
       color: 'bg-purple-50 text-purple-700',
+    },
+    {
+      title: 'Top Médicos',
+      value: `${data?.topMedicos?.length || 0} médicos`,
+      subtitle: 'Médicos con mayor utilidad',
+      color: 'bg-green-50 text-green-700',
     },
   ];
 
@@ -97,10 +97,6 @@ export default function Dashboard() {
               <span className="font-bold text-gray-800">{formatCOP(data?.utilidadTotal || 0)}</span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-gray-600">Distribución a Médicos</span>
-              <span className="font-medium text-green-600">{formatCOP(data?.gananciaMedicos || 0)}</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="text-gray-600">Distribución al Centro</span>
               <span className="font-medium text-purple-600">{formatCOP(data?.gananciaCentro || 0)}</span>
             </div>
@@ -112,23 +108,26 @@ export default function Dashboard() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Información del Sistema</h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-gray-600">Estado</span>
-              <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                Operativo
-              </span>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">Top Médicos por Utilidad</h3>
+          {data?.topMedicos && data.topMedicos.length > 0 ? (
+            <div className="space-y-2">
+              {data.topMedicos.slice(0, 5).map((medico, idx) => (
+                <div key={medico.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                      idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : idx === 2 ? 'bg-amber-700' : 'bg-gray-300'
+                    }`}>
+                      {idx + 1}
+                    </span>
+                    <span className="text-sm text-gray-700">{medico.nombre}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-green-600">{formatCOP(medico.total)}</span>
+                </div>
+              ))}
             </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-gray-600">Base de Datos</span>
-              <span className="text-gray-700">PostgreSQL</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-gray-600">Versión</span>
-              <span className="text-gray-700">v3.0.0</span>
-            </div>
-          </div>
+          ) : (
+            <p className="text-sm text-gray-400">No hay datos de médicos disponibles.</p>
+          )}
         </div>
       </div>
     </div>

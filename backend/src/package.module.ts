@@ -10,6 +10,8 @@ import { INVENTORY_MOVEMENT_REPOSITORY } from './domain/inventory-movement/inter
 import { InventoryMovementPrismaRepository } from './infrastructure/inventory-movement/repositories/inventory-movement.prisma.repository';
 import { SALE_REPOSITORY } from './domain/sale/interfaces/sale.interface';
 import { SalePrismaRepository } from './infrastructure/sale/repositories/sale.prisma.repository';
+import { TERCERO_REPOSITORY } from './domain/tercero/interfaces/tercero.interface';
+import { TerceroPrismaRepository } from './infrastructure/tercero/repositories/tercero.prisma.repository';
 
 @Module({
   controllers: [PackageController],
@@ -20,6 +22,7 @@ import { SalePrismaRepository } from './infrastructure/sale/repositories/sale.pr
     { provide: PRODUCT_REPOSITORY, useClass: ProductPrismaRepository },
     { provide: INVENTORY_MOVEMENT_REPOSITORY, useClass: InventoryMovementPrismaRepository },
     { provide: SALE_REPOSITORY, useClass: SalePrismaRepository },
+    { provide: TERCERO_REPOSITORY, useClass: TerceroPrismaRepository },
   ],
   exports: [PackageService],
 })

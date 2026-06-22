@@ -1,5 +1,58 @@
 # Historial de Cambios
 
+## [5.0.0] - 2026-06-22
+
+### Conexión Completa Paquetes ↔ Ventas + Script de Limpieza
+
+#### Integración Paquetes en Ventas
+- **Backend**: `SaleService.create()` ahora acepta `packageId` en los detalles, procesando la venta de paquetes: valida stock de componentes, descuenta inventario de cada producto componente, crea snapshot de rentabilidad (`SalePackage`) y registra movimientos de inventario.
+- **Backend**: `SaleService.cancel()` restaura stock de todos los productos componentes al anular una venta con paquete.
+- **Backend**: `SaleService.getComprobante()` muestra "Paquete: {nombre}" en lugar del ID genérico.
+- **Backend**: `SaleDetailDto` añade campo opcional `packageId`.
+- **Backend**: `SaleModule` inyecta `PACKAGE_REPOSITORY` y `SALE_PACKAGE_REPOSITORY`.
+- **Frontend**: Ventana de nueva venta con selector de tipo (Producto/Paquete) por cada línea, búsqueda de paquetes por nombre, visualización de componentes del paquete seleccionado.
+- **Frontend**: `SaleDetailDto` actualizado con `packageId` opcional.
+- **Validación**: No permite vender paquete si algún componente no tiene stock suficiente. Mensaje claro indicando producto, stock disponible y requerido.
+
+#### Script de Limpieza de Datos de Prueba
+- **Nuevo**: `backend/scripts/reset-test-data.ts` — script reutilizable que elimina todos los datos transaccionales y de prueba de la base de datos, conservando únicamente los usuarios del sistema.
+- **Nuevo**: Comando `npm run clean-data` para ejecutar la limpieza.
+- **Seguridad**: Solicita confirmación escrita ("BORRAR") antes de ejecutar. Bloquea ejecución en entorno de producción.
+- **Reporte**: Al finalizar muestra registros eliminados por tabla y total general.
+
+## [4.0.0] - 2026-06-22
+
+### Ampliación del Modelo de Negocio: Médicos y Liquidación de Utilidades
+
+#### Cambios Mayores
+- **Nuevo tipo de tercero MEDICO**: la entidad Terceros ahora soporta el rol de médico.
+- **Asociación médico-venta**: cada venta queda asociada al médico que ordenó el tratamiento.
+- **Cálculo individual de utilidad médica**: la utilidad se acumula individualmente por médico, no de forma global.
+- **Snapshot histórico en venta de paquetes**: SalePackage ahora guarda el médico responsable, porcentajes aplicados y valores calculados al momento de la venta.
+- **Dashboard actualizado**: se eliminó la tarjeta "Ganancia Médicos Total" y se reemplazó por "Top Médicos por Utilidad" con ranking individual.
+
+#### Modelos Modificados
+- **Tercero**: nuevo campo `registroProfesional` (opcional para médicos). Nuevas relaciones `medicoSales` (ventas como médico) y `salePackagesMedico` (snapshots de paquetes vendidos como médico).
+- **Sale**: nuevo campo `medicoId` (obligatorio) que asocia la venta al médico responsable. Nueva relación `medico` con Tercero.
+- **SalePackage**: nuevo campo `medicoId` para snapshot histórico del médico asociado al paquete vendido.
+
+#### Backend
+- DTOs actualizados: `CreateTerceroDto` acepta `MEDICO` como tipoRelación y `registroProfesional`. `CreateSaleDto` requiere `medicoId` obligatorio.
+- `SaleService.create()`: valida que el médico exista y sea de tipo MEDICO.
+- `PackageService.sellPackage()`: acepta y valida `medicoId`, lo persiste en Sale y SalePackage.
+- `DashboardService.getSummary()`: ya no suma `gananciaMedicos` global. Calcula `topMedicos` agregando `gananciaMedico` del SalePackage agrupado por `medicoId`, ordenado de mayor a menor.
+- `PackageModule` y `SaleModule`: inyectan `TERCERO_REPOSITORY` para validación de médicos.
+
+#### Frontend
+- **Página Terceros**: nueva opción "Médico" en tipo de relación. Campo "Registro Profesional" visible solo para médicos. Columna "Reg. Prof." en la tabla.
+- **Página Ventas**: nuevo selector obligatorio de médico al crear/editar ventas. Columna "Médico" en la tabla de ventas.
+- **Página Paquetes**: nuevo selector obligatorio de médico en el modal de venta de paquete.
+- **Dashboard**: tarjeta "Ganancia Médicos" reemplazada por "Top Médicos". Nuevo panel "Top Médicos por Utilidad" con ranking numerado (1-5) con medallas de colores (oro, plata, bronce). Sección de rentabilidad simplificada (ya no muestra distribución a médicos global).
+
+#### Migraciones
+- Esquema actualizado con `prisma db push`.
+- Nuevos campos: `registroProfesional` en Tercero, `medicoId` en Sale y SalePackage.
+
 ## [3.1.0] - 2026-06-20
 
 ### Autenticación y Control de Acceso

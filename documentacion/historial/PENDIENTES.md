@@ -1,6 +1,6 @@
 # Tareas Pendientes
 
-## Estado Actual del Proyecto (20/06/2026)
+## Estado Actual del Proyecto (22/06/2026)
 
 ### Completado
 - [x] Estructura base del proyecto (backend + frontend + documentación).
@@ -44,6 +44,13 @@
 - [x] Barra superior con nombre de usuario, rol y cierre de sesión.
 - [x] API helper con token JWT automático en todas las solicitudes.
 - [x] Registro de último acceso (ultimoAcceso) del usuario.
+- [x] Tipo de tercero MEDICO con registro profesional.
+- [x] Asociación obligatoria médico-venta.
+- [x] Asociación médico-paquete.
+- [x] Cálculo individual de utilidad médica (snapshot histórico).
+- [x] Dashboard: Top Médicos por Utilidad con ranking.
+- [x] Dashboard: Ganancia Centro acumulada globalmente.
+- [x] Arquitectura preparada para reportes futuros (liquidación, ventas, comisiones, ranking).
 
 ### En Progreso
 - (ninguno)

@@ -1,13 +1,19 @@
 import { apiFetch } from './helpers';
 
+export interface TopMedico {
+  id: string;
+  nombre: string;
+  total: number;
+}
+
 export interface DashboardSummary {
   ventasTotales: number;
   costosTotales: number;
-  gananciaMedicos: number;
   gananciaCentro: number;
   utilidadTotal: number;
   totalSales: number;
   totalPackagesSold: number;
+  topMedicos: TopMedico[];
 }
 
 export async function fetchDashboard(): Promise<DashboardSummary> {

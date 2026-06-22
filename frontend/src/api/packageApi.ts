@@ -44,10 +44,10 @@ export async function deletePackage(id: string): Promise<void> {
   if (!res.ok) throw new Error('Error al eliminar paquete');
 }
 
-export async function sellPackage(id: string, terceroId?: string): Promise<any> {
+export async function sellPackage(id: string, terceroId?: string, medicoId?: string): Promise<any> {
   const res = await apiFetch(`${BASE}/${id}/sell`, {
     method: 'POST',
-    body: JSON.stringify({ terceroId }),
+    body: JSON.stringify({ terceroId, medicoId }),
   });
   if (!res.ok) {
     const msg = await res.text();

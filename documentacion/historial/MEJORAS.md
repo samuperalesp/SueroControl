@@ -1,5 +1,25 @@
 # Mejoras Realizadas
 
+## Implementado (v5.0.0)
+- Ventas unificadas: paquetes y productos se venden desde el mismo flujo (POST /sales).
+- Selector de tipo (Producto/Paquete) en cada línea de venta del frontend.
+- Visualización de componentes del paquete al seleccionarlo en una venta.
+- Al vender paquete: descuenta stock de cada producto componente, no del paquete.
+- Validación de stock suficiente en todos los componentes antes de confirmar la venta.
+- Anulación de venta con paquete: restaura stock de todos los componentes.
+- Comprobante muestra nombre del paquete en lugar de ID genérico.
+- Script de limpieza de datos de prueba (`npm run clean-data`) con confirmación y bloqueo de producción.
+
+## Implementado (v4.0.0)
+- Tipo de tercero MEDICO (registro profesional, nombres, apellidos, documento, contacto).
+- Asociación obligatoria médico-venta (toda venta requiere médico).
+- Asociación médico-paquete (al vender paquete se requiere médico).
+- Cálculo individual de utilidad médica (acumulada por médico, no global).
+- Snapshot histórico en SalePackage con médico, porcentajes y valores calculados.
+- Dashboard: Top Médicos por Utilidad con ranking individual.
+- Dashboard: Ganancia Centro acumulada globalmente (se mantiene).
+- Preparación de arquitectura para reportes futuros (liquidación mensual, ventas por médico, comisiones, ranking).
+
 ## Implementado (v3.1.0)
 - Autenticación JWT con login de usuarios.
 - Hash de contraseñas con bcrypt.

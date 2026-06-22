@@ -10,6 +10,7 @@ export class SalePackagePrismaRepository implements ISalePackageRepository {
   async create(data: {
     saleId: string;
     packageId: string;
+    medicoId?: string;
     precioVenta: number;
     costoMedicamentos: number;
     costoOperativo: number;

@@ -12,6 +12,7 @@ export interface Sale {
   id: string;
   consecutivo: number;
   terceroId?: string;
+  medicoId?: string;
   total: number;
   costoTotal?: number;
   utilidadTotal?: number;
@@ -25,13 +26,15 @@ export interface Sale {
 }
 
 export interface SaleDetailDto {
-  productId: string;
+  productId?: string;
+  packageId?: string;
   quantity: number;
   unitPrice: number;
 }
 
 export interface CreateSaleDto {
   terceroId?: string;
+  medicoId: string;
   details: SaleDetailDto[];
 }
 

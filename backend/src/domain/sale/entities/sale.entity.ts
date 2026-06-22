@@ -4,6 +4,7 @@ export class Sale {
   id: string;
   consecutivo: number;
   terceroId?: string;
+  medicoId?: string;
   total: number;
   costoTotal?: number;
   utilidadTotal?: number;
