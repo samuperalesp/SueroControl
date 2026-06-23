@@ -55,9 +55,9 @@ export default function Dashboard() {
       color: 'bg-blue-50 text-blue-700',
     },
     {
-      title: 'Costos Totales',
-      value: formatCOP(data?.costosTotales || 0),
-      subtitle: 'Costo de medicamentos e insumos',
+      title: 'Compras Totales',
+      value: formatCOP(data?.comprasTotales || 0),
+      subtitle: 'Compras realizadas',
       color: 'bg-orange-50 text-orange-700',
     },
     {

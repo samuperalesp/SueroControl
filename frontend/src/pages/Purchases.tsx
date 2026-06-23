@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Purchase } from '../types/purchase';
 import type { Product } from '../types/product';
 import type { Tercero } from '../types/tercero';
-import { fetchPurchases, createPurchase, convertPedidoToCompra } from '../api/purchaseApi';
+import { fetchPurchases, createPurchase, updatePurchase, convertPedidoToCompra } from '../api/purchaseApi';
 import { fetchProducts } from '../api/productApi';
 import { fetchTerceros } from '../api/terceroApi';
 import PurchaseModal from '../components/PurchaseModal';
@@ -17,6 +17,7 @@ export default function Purchases() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [modalTipo, setModalTipo] = useState<'COMPRA' | 'PEDIDO'>('COMPRA');
+  const [editingPurchase, setEditingPurchase] = useState<Purchase | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -54,8 +55,25 @@ export default function Purchases() {
     setShowModal(true);
   }
 
+  function handleEditPedido(pedido: Purchase) {
+    setEditingPurchase(pedido);
+    setModalTipo('PEDIDO');
+    setShowModal(true);
+  }
+
   async function handleSave(data: { facturaNumero?: string; terceroId?: string; details: { productId: string; quantity: number; unitCost: number }[] }) {
-    await createPurchase({ tipo: modalTipo, facturaNumero: data.facturaNumero, terceroId: data.terceroId, details: data.details });
+    if (editingPurchase) {
+      const dto: { terceroId?: string; details?: { productId: string; quantity: number; unitCost: number }[] } = {};
+      if (data.terceroId !== editingPurchase.terceroId) dto.terceroId = data.terceroId;
+      const hasDetailChanges = JSON.stringify(data.details) !== JSON.stringify(editingPurchase.details?.map(d => ({ productId: d.productId, quantity: d.quantity, unitCost: d.unitCost })));
+      if (hasDetailChanges) dto.details = data.details;
+      if (Object.keys(dto).length > 0) {
+        await updatePurchase(editingPurchase.id, dto);
+      }
+    } else {
+      await createPurchase({ tipo: modalTipo, facturaNumero: data.facturaNumero, terceroId: data.terceroId, details: data.details });
+    }
+    setEditingPurchase(null);
     setShowModal(false);
     await load();
   }
@@ -153,9 +171,16 @@ export default function Purchases() {
                   </td>
                   {tab === 'pedidos' && (
                     <td className="px-4 py-3">
-                      <button onClick={() => handleConvert(p.id)} className="text-blue-600 hover:text-blue-800 text-xs font-medium cursor-pointer">
-                        Convertir a Compra
-                      </button>
+                      <div className="flex gap-2">
+                        <button onClick={() => handleEditPedido(p)}
+                          className="text-blue-600 hover:text-blue-800 text-xs font-medium cursor-pointer">
+                          Editar
+                        </button>
+                        <button onClick={() => handleConvert(p.id)}
+                          className="text-green-600 hover:text-green-800 text-xs font-medium cursor-pointer">
+                          Convertir a Compra
+                        </button>
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -170,8 +195,9 @@ export default function Purchases() {
           tipo={modalTipo}
           products={products}
           proveedores={proveedores}
+          initialData={editingPurchase ? { id: editingPurchase.id, facturaNumero: editingPurchase.facturaNumero, terceroId: editingPurchase.terceroId, details: editingPurchase.details } : undefined}
           onSave={handleSave}
-          onClose={() => setShowModal(false)}
+          onClose={() => { setEditingPurchase(null); setShowModal(false); }}
         />
       )}
     </div>

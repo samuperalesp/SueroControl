@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ISaleRepository } from '../../../domain/sale/interfaces/sale.interface';
-import type { SaleSearchParams, SaleDetailData } from '../../../domain/sale/interfaces/sale.interface';
+import type { SaleSearchParams, SaleDetailData, UpdateSaleData } from '../../../domain/sale/interfaces/sale.interface';
 import { Sale } from '../../../domain/sale/entities/sale.entity';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -77,10 +77,12 @@ export class SalePrismaRepository implements ISaleRepository {
     return result._max.consecutivo ?? 0;
   }
 
-  async update(id: string, data: { terceroId?: string; total?: number; details?: SaleDetailData[] }): Promise<Sale> {
+  async update(id: string, data: UpdateSaleData): Promise<Sale> {
     const updateData: any = {};
     if (data.terceroId !== undefined) updateData.terceroId = data.terceroId;
+    if (data.medicoId !== undefined) updateData.medicoId = data.medicoId;
     if (data.total !== undefined) updateData.total = data.total;
+    if (data.estado !== undefined) updateData.estado = data.estado;
 
     if (data.details) {
       await this.prisma.saleDetail.deleteMany({ where: { saleId: id } });

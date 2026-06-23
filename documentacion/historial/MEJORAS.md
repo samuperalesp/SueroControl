@@ -1,5 +1,12 @@
 # Mejoras Realizadas
 
+## Implementado (v5.1.0)
+- Dashboard: `gananciaCentro` ahora se calcula desde `SalePackage.gananciaCentro` (suma de paquetes vendidos), no desde `Sale.gananciaCentro`.
+- Dashboard: "Costos Totales" renombrado a "Compras Totales". Ahora suma `Purchase.total` donde `tipo = 'COMPRA'`.
+- Dashboard: `utilidadTotal` ahora suma `SalePackage.utilidad` (utilidad real de paquetes), no `ventas - costos`.
+- Dashboard: consulta unificada de SalePackage para ganancia centro, utilidad total y top médicos (una sola llamada a BD).
+- Manual técnico: agregada sección "Cálculos del Dashboard" con fórmulas documentadas.
+
 ## Implementado (v5.0.0)
 - Ventas unificadas: paquetes y productos se venden desde el mismo flujo (POST /sales).
 - Selector de tipo (Producto/Paquete) en cada línea de venta del frontend.

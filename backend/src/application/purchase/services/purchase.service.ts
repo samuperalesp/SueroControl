@@ -8,7 +8,7 @@ import type { IInventoryMovementRepository } from '../../../domain/inventory-mov
 import { TERCERO_REPOSITORY } from '../../../domain/tercero/interfaces/tercero.interface';
 import type { ITerceroRepository } from '../../../domain/tercero/interfaces/tercero.interface';
 import { Purchase } from '../../../domain/purchase/entities/purchase.entity';
-import { CreatePurchaseDto } from '../dtos/purchase.dtos';
+import { CreatePurchaseDto, UpdatePurchaseDto } from '../dtos/purchase.dtos';
 
 @Injectable()
 export class PurchaseService {
@@ -99,6 +99,43 @@ export class PurchaseService {
     const purchase = await this.purchaseRepository.findById(id);
     if (!purchase) throw new NotFoundException('Purchase not found');
     return purchase;
+  }
+
+  async updatePedido(id: string, dto: UpdatePurchaseDto): Promise<Purchase> {
+    const pedido = await this.purchaseRepository.findById(id);
+    if (!pedido) throw new NotFoundException('Pedido no encontrado');
+    if (pedido.tipo !== 'PEDIDO') throw new BadRequestException('Solo se pueden editar pedidos en estado PEDIDO');
+
+    if (dto.terceroId !== undefined) {
+      if (!dto.terceroId) throw new BadRequestException('El proveedor no puede quedar vacío');
+      const tercero = await this.terceroRepository.findById(dto.terceroId);
+      if (!tercero) throw new NotFoundException('Proveedor no encontrado');
+      if (tercero.tipoRelacion !== 'PROVEEDOR' && tercero.tipoRelacion !== 'CLIENTE_PROVEEDOR') {
+        throw new BadRequestException('El tercero debe ser de tipo PROVEEDOR o CLIENTE_PROVEEDOR');
+      }
+    }
+
+    let details = pedido.details?.map(d => ({ productId: d.productId, quantity: d.quantity, unitCost: d.unitCost, subTotal: d.subTotal })) || [];
+
+    if (dto.details) {
+      if (dto.details.length === 0) throw new BadRequestException('El pedido debe tener al menos un producto');
+      details = [];
+      let total = 0;
+      for (const detail of dto.details) {
+        const product = await this.productRepository.findById(detail.productId);
+        if (!product) throw new NotFoundException(`Producto ${detail.productId} no encontrado`);
+        const subTotal = detail.quantity * detail.unitCost;
+        total += subTotal;
+        details.push({ productId: detail.productId, quantity: detail.quantity, unitCost: detail.unitCost, subTotal });
+      }
+      const updated = await this.purchaseRepository.update(id, { terceroId: dto.terceroId, total, details });
+      if (!updated) throw new NotFoundException('Error al actualizar pedido');
+      return updated;
+    }
+
+    const updated = await this.purchaseRepository.update(id, { terceroId: dto.terceroId });
+    if (!updated) throw new NotFoundException('Error al actualizar pedido');
+    return updated;
   }
 
   async convertPedidoToCompra(pedidoId: string): Promise<Purchase> {

@@ -8,7 +8,7 @@ export interface TopMedico {
 
 export interface DashboardSummary {
   ventasTotales: number;
-  costosTotales: number;
+  comprasTotales: number;
   gananciaCentro: number;
   utilidadTotal: number;
   totalSales: number;

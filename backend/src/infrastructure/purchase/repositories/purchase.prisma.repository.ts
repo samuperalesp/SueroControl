@@ -45,11 +45,29 @@ export class PurchasePrismaRepository implements IPurchaseRepository {
     }) as Promise<Purchase | null>;
   }
 
-  async update(id: string, data: { tipo?: string; pedidoId?: string; total?: number }): Promise<Purchase | null> {
+  async update(id: string, data: { tipo?: string; pedidoId?: string; terceroId?: string; total?: number; details?: { productId: string; quantity: number; unitCost: number; subTotal: number }[] }): Promise<Purchase | null> {
     try {
+      const updateData: any = {};
+      if (data.tipo !== undefined) updateData.tipo = data.tipo;
+      if (data.pedidoId !== undefined) updateData.pedidoId = data.pedidoId;
+      if (data.terceroId !== undefined) updateData.terceroId = data.terceroId;
+      if (data.total !== undefined) updateData.total = data.total;
+
+      if (data.details) {
+        await this.prisma.purchaseDetail.deleteMany({ where: { purchaseId: id } });
+        return this.prisma.purchase.update({
+          where: { id },
+          data: {
+            ...updateData,
+            details: { create: data.details },
+          },
+          include: { details: true },
+        }) as Promise<Purchase>;
+      }
+
       return this.prisma.purchase.update({
         where: { id },
-        data,
+        data: updateData,
         include: { details: true },
       }) as Promise<Purchase>;
     } catch {

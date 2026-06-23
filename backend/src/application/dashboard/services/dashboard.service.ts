@@ -15,22 +15,25 @@ export class DashboardService {
     });
 
     const ventasTotales = sales.reduce((sum, s) => sum + s.total, 0);
-    const costosTotales = sales.reduce((sum, s) => sum + (s.costoTotal ?? 0), 0);
-    const gananciaCentro = sales.reduce((sum, s) => sum + (s.gananciaCentro ?? 0), 0);
-
     const totalSales = sales.length;
     const totalPackagesSold = sales.reduce((sum, s) => sum + (s.salePackages?.length ?? 0), 0);
 
-    // Top médicos por utilidad from SalePackage historical snapshot
+    const compras = await this.prisma.purchase.findMany({
+      where: { tipo: 'COMPRA' },
+    });
+    const comprasTotales = compras.reduce((sum, c) => sum + c.total, 0);
+
     const salePackages = await this.prisma.salePackage.findMany({
       where: {
         sale: { estado: 'ACTIVA' },
-        medicoId: { not: null },
       },
       include: {
         medico: true,
       },
     });
+
+    const gananciaCentro = salePackages.reduce((sum, sp) => sum + sp.gananciaCentro, 0);
+    const utilidadTotal = salePackages.reduce((sum, sp) => sum + sp.utilidad, 0);
 
     const medicoMap = new Map<string, { nombre: string; total: number }>();
     for (const sp of salePackages) {
@@ -51,9 +54,9 @@ export class DashboardService {
 
     return {
       ventasTotales: Math.round(ventasTotales * 100) / 100,
-      costosTotales: Math.round(costosTotales * 100) / 100,
+      comprasTotales: Math.round(comprasTotales * 100) / 100,
       gananciaCentro: Math.round(gananciaCentro * 100) / 100,
-      utilidadTotal: Math.round((ventasTotales - costosTotales) * 100) / 100,
+      utilidadTotal: Math.round(utilidadTotal * 100) / 100,
       totalSales,
       totalPackagesSold,
       topMedicos,

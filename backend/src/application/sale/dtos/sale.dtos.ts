@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsArray, Min, IsOptional, ValidateNested, IsIn, IsDateString } from 'class-validator';
+import { IsString, IsNumber, IsArray, Min, IsOptional, ValidateNested, IsIn, IsDateString, IsNotEmpty } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SaleDetailDto {
@@ -34,13 +34,31 @@ export class CreateSaleDto {
 }
 
 export class UpdateSaleDto {
-  @IsString()
   @IsOptional()
+  @IsString()
+  @IsNotEmpty()
   terceroId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  medicoId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  estado?: string;
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SaleDetailDto)
+  details?: SaleDetailDto[];
 }
 
 export class CancelSaleDto {
   @IsString()
+  @IsNotEmpty()
   motivo: string;
 }
 

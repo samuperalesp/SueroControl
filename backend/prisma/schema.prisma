@@ -110,11 +110,25 @@ model Sale {
   anuladaMotivo  String?
   anuladaAt      DateTime?
   createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   tercero      Tercero?      @relation(fields: [terceroId], references: [id])
   medico       Tercero?      @relation("MedicoSales", fields: [medicoId], references: [id])
   details      SaleDetail[]
   salePackages SalePackage[]
+  history      SaleHistory[]
+}
+
+model SaleHistory {
+  id        String   @id @default(uuid())
+  saleId    String
+  campo     String
+  valorAnterior String?
+  valorNuevo    String?
+  userId    String?
+  createdAt DateTime @default(now())
+
+  sale Sale @relation(fields: [saleId], references: [id])
 }
 
 model SaleDetail {

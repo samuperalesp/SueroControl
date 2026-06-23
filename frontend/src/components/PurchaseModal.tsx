@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Product } from '../types/product';
 import type { Tercero } from '../types/tercero';
+import type { PurchaseDetail } from '../types/purchase';
 
 interface LineItem {
   productId: string;
@@ -12,19 +13,42 @@ interface Props {
   tipo: 'COMPRA' | 'PEDIDO';
   products: Product[];
   proveedores: Tercero[];
+  initialData?: {
+    id: string;
+    facturaNumero?: string;
+    terceroId?: string;
+    details?: PurchaseDetail[];
+  };
   onSave: (data: { facturaNumero?: string; terceroId?: string; details: LineItem[] }) => Promise<void>;
   onClose: () => void;
 }
 
-export default function PurchaseModal({ tipo, products, proveedores, onSave, onClose }: Props) {
-  const [items, setItems] = useState<LineItem[]>([
-    { productId: '', quantity: 1, unitCost: 0 },
-  ]);
-  const [searchTexts, setSearchTexts] = useState<string[]>(['']);
+export default function PurchaseModal({ tipo, products, proveedores, initialData, onSave, onClose }: Props) {
+  const [items, setItems] = useState<LineItem[]>(() => {
+    if (initialData?.details && initialData.details.length > 0) {
+      return initialData.details.map(d => ({ productId: d.productId, quantity: d.quantity, unitCost: d.unitCost }));
+    }
+    return [{ productId: '', quantity: 1, unitCost: 0 }];
+  });
+  const [searchTexts, setSearchTexts] = useState<string[]>(() => {
+    if (initialData?.details && initialData.details.length > 0) {
+      return initialData.details.map(d => {
+        const p = products.find(pr => pr.id === d.productId);
+        return p ? `${p.codigo} - ${p.nombre}` : '';
+      });
+    }
+    return [''];
+  });
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
-  const [facturaNumero, setFacturaNumero] = useState('');
-  const [selectedProveedorId, setSelectedProveedorId] = useState('');
-  const [proveedorSearch, setProveedorSearch] = useState('');
+  const [facturaNumero, setFacturaNumero] = useState(initialData?.facturaNumero || '');
+  const [selectedProveedorId, setSelectedProveedorId] = useState(initialData?.terceroId || '');
+  const [proveedorSearch, setProveedorSearch] = useState(() => {
+    if (initialData?.terceroId) {
+      const t = proveedores.find(p => p.id === initialData.terceroId);
+      if (t) return t.tipoPersona === 'NATURAL' ? `${t.nombres} ${t.apellidos}` : t.razonSocial || '';
+    }
+    return '';
+  });
   const [showProveedorDropdown, setShowProveedorDropdown] = useState(false);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -222,7 +246,7 @@ export default function PurchaseModal({ tipo, products, proveedores, onSave, onC
         <div className="flex justify-end gap-3">
           <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cancelar</button>
           <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
-            {saving ? 'Guardando...' : tipo === 'COMPRA' ? 'Registrar Compra' : 'Registrar Pedido'}
+            {saving ? 'Guardando...' : initialData ? 'Guardar Cambios' : tipo === 'COMPRA' ? 'Registrar Compra' : 'Registrar Pedido'}
           </button>
         </div>
       </form>

@@ -13,5 +13,5 @@ export interface IPurchaseRepository {
   }): Promise<Purchase>;
   findAll(): Promise<Purchase[]>;
   findById(id: string): Promise<Purchase | null>;
-  update(id: string, data: { tipo?: string; pedidoId?: string; total?: number }): Promise<Purchase | null>;
+  update(id: string, data: { tipo?: string; pedidoId?: string; terceroId?: string; total?: number; details?: { productId: string; quantity: number; unitCost: number; subTotal: number }[] }): Promise<Purchase | null>;
 }

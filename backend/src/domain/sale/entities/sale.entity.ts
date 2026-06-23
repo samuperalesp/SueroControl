@@ -14,5 +14,6 @@ export class Sale {
   anuladaMotivo?: string;
   anuladaAt?: Date;
   createdAt: Date;
+  updatedAt: Date;
   details?: SaleDetail[];
 }

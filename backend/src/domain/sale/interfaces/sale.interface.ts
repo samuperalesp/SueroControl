@@ -1,6 +1,7 @@
 import { Sale } from '../entities/sale.entity';
 
 export const SALE_REPOSITORY = 'SALE_REPOSITORY';
+export const SALE_HISTORY_REPOSITORY = 'SALE_HISTORY_REPOSITORY';
 
 export interface SaleDetailData {
   productId?: string;
@@ -10,11 +11,27 @@ export interface SaleDetailData {
   subTotal: number;
 }
 
+export interface SaleHistoryData {
+  saleId: string;
+  campo: string;
+  valorAnterior?: string;
+  valorNuevo?: string;
+  userId?: string;
+}
+
 export interface SaleSearchParams {
   consecutivo?: number;
   terceroId?: string;
   fechaDesde?: string;
   fechaHasta?: string;
+}
+
+export interface UpdateSaleData {
+  terceroId?: string;
+  medicoId?: string;
+  total?: number;
+  estado?: string;
+  details?: SaleDetailData[];
 }
 
 export interface ISaleRepository {
@@ -33,6 +50,11 @@ export interface ISaleRepository {
   findById(id: string): Promise<Sale | null>;
   findByConsecutivo(consecutivo: number): Promise<Sale | null>;
   findMaxConsecutivo(): Promise<number>;
-  update(id: string, data: { terceroId?: string; medicoId?: string; total?: number; details?: SaleDetailData[] }): Promise<Sale>;
+  update(id: string, data: UpdateSaleData): Promise<Sale>;
   cancel(id: string, motivo: string): Promise<Sale>;
+}
+
+export interface ISaleHistoryRepository {
+  create(data: SaleHistoryData): Promise<void>;
+  findBySaleId(saleId: string): Promise<SaleHistoryData[]>;
 }

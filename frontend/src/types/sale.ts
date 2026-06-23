@@ -22,6 +22,7 @@ export interface Sale {
   anuladaMotivo?: string;
   anuladaAt?: string;
   createdAt: string;
+  updatedAt: string;
   details?: SaleDetail[];
 }
 
@@ -40,6 +41,8 @@ export interface CreateSaleDto {
 
 export interface UpdateSaleDto {
   terceroId?: string;
+  medicoId?: string;
+  details?: SaleDetailDto[];
 }
 
 export interface CancelSaleDto {

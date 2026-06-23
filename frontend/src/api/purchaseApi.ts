@@ -1,4 +1,4 @@
-import type { Purchase, CreatePurchaseDto } from '../types/purchase';
+import type { Purchase, CreatePurchaseDto, UpdatePurchaseDto } from '../types/purchase';
 import { apiFetch } from './helpers';
 
 const BASE = '/purchases';
@@ -23,6 +23,18 @@ export async function createPurchase(dto: CreatePurchaseDto): Promise<Purchase> 
   if (!res.ok) {
     const msg = await res.text();
     throw new Error(msg || 'Error al crear compra');
+  }
+  return res.json();
+}
+
+export async function updatePurchase(id: string, dto: UpdatePurchaseDto): Promise<Purchase> {
+  const res = await apiFetch(`${BASE}/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(dto),
+  });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(msg || 'Error al actualizar pedido');
   }
   return res.json();
 }

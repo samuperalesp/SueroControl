@@ -31,3 +31,8 @@ export interface CreatePurchaseDto {
   terceroId?: string;
   details: PurchaseDetailDto[];
 }
+
+export interface UpdatePurchaseDto {
+  terceroId?: string;
+  details?: PurchaseDetailDto[];
+}

@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
 import { PurchaseService } from '../../../application/purchase/services/purchase.service';
-import { CreatePurchaseDto } from '../../../application/purchase/dtos/purchase.dtos';
+import { CreatePurchaseDto, UpdatePurchaseDto } from '../../../application/purchase/dtos/purchase.dtos';
 
 @Controller('purchases')
 export class PurchaseController {
@@ -22,6 +22,12 @@ export class PurchaseController {
   @HttpCode(HttpStatus.OK)
   async findOne(@Param('id') id: string) {
     return this.purchaseService.findById(id);
+  }
+
+  @Put(':id')
+  @HttpCode(HttpStatus.OK)
+  async update(@Param('id') id: string, @Body() dto: UpdatePurchaseDto) {
+    return this.purchaseService.updatePedido(id, dto);
   }
 
   @Put(':id/convert')

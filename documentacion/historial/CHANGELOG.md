@@ -1,5 +1,34 @@
 # Historial de Cambios
 
+## [5.1.0] - 2026-06-23
+
+### Corrección de Cálculos del Dashboard
+
+#### Problema
+- `gananciaCentro` siempre mostraba 0 porque se leía del campo `Sale.gananciaCentro`, el cual nunca se establece al crear una venta.
+- `costosTotales` siempre mostraba 0 porque se leía de `Sale.costoTotal`, que tampoco se establece.
+- `utilidadTotal` se calculaba como `ventasTotales - costosTotales`, dando un resultado incorrecto.
+
+#### Solución
+- **gananciaCentro**: ahora se calcula como la suma de `SalePackage.gananciaCentro` de todos los paquetes vendidos en ventas activas.
+- **comprasTotales**: renombrado desde `costosTotales`. Se calcula como la suma de `Purchase.total` donde `tipo = 'COMPRA'`.
+- **utilidadTotal**: ahora se calcula como la suma de `SalePackage.utilidad` de todos los paquetes vendidos, reflejando la utilidad real.
+- **Top Médicos**: Unificado con la misma consulta de SalePackage para evitar llamadas duplicadas a la base de datos.
+
+#### Fórmulas implementadas
+```
+Ventas Totales    = SUM(Sale.total) WHERE estado = 'ACTIVA'
+Compras Totales   = SUM(Purchase.total) WHERE tipo = 'COMPRA'
+Ganancia Centro   = SUM(SalePackage.gananciaCentro) WHERE sale.estado = 'ACTIVA'
+Utilidad Total    = SUM(SalePackage.utilidad) WHERE sale.estado = 'ACTIVA'
+Top Médicos       = SUM(SalePackage.gananciaMedico) GROUP BY medicoId ORDER BY total DESC
+```
+
+#### Frontend
+- Renombrada tarjeta "Costos Totales" → "Compras Totales".
+- Subtítulo actualizado de "Costo de medicamentos e insumos" → "Compras realizadas".
+- Tipo `DashboardSummary` actualizado: `costosTotales` → `comprasTotales`.
+
 ## [5.0.0] - 2026-06-22
 
 ### Conexión Completa Paquetes ↔ Ventas + Script de Limpieza

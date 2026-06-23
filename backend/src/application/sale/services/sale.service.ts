@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
-import { SALE_REPOSITORY } from '../../../domain/sale/interfaces/sale.interface';
-import type { ISaleRepository, SaleSearchParams } from '../../../domain/sale/interfaces/sale.interface';
+import { Injectable, NotFoundException, BadRequestException, Inject, ForbiddenException } from '@nestjs/common';
+import { SALE_REPOSITORY, SALE_HISTORY_REPOSITORY } from '../../../domain/sale/interfaces/sale.interface';
+import type { ISaleRepository, ISaleHistoryRepository, SaleSearchParams } from '../../../domain/sale/interfaces/sale.interface';
 import { PRODUCT_REPOSITORY } from '../../../domain/product/interfaces/product.interface';
 import type { IProductRepository } from '../../../domain/product/interfaces/product.interface';
 import { PACKAGE_REPOSITORY, SALE_PACKAGE_REPOSITORY } from '../../../domain/package/interfaces/package.interface';
@@ -12,10 +12,13 @@ import type { ITerceroRepository } from '../../../domain/tercero/interfaces/terc
 import { Sale } from '../../../domain/sale/entities/sale.entity';
 import { CreateSaleDto, UpdateSaleDto, CancelSaleDto } from '../dtos/sale.dtos';
 
+const ESTADOS_NO_EDITABLES = ['ANULADA', 'FINALIZADA'];
+
 @Injectable()
 export class SaleService {
   constructor(
     @Inject(SALE_REPOSITORY) private readonly saleRepository: ISaleRepository,
+    @Inject(SALE_HISTORY_REPOSITORY) private readonly historyRepository: ISaleHistoryRepository,
     @Inject(PRODUCT_REPOSITORY) private readonly productRepository: IProductRepository,
     @Inject(PACKAGE_REPOSITORY) private readonly packageRepository: IPackageRepository,
     @Inject(SALE_PACKAGE_REPOSITORY) private readonly salePackageRepository: ISalePackageRepository,
@@ -210,21 +213,84 @@ export class SaleService {
     return sale;
   }
 
-  async update(id: string, dto: UpdateSaleDto): Promise<Sale> {
+  async update(id: string, dto: UpdateSaleDto, userId?: string): Promise<Sale> {
     const sale = await this.findById(id);
-    if (sale.estado !== 'ACTIVA') {
-      throw new BadRequestException('No se puede editar una venta anulada');
+
+    if (ESTADOS_NO_EDITABLES.includes(sale.estado)) {
+      throw new BadRequestException(`No se puede editar una venta en estado "${sale.estado}"`);
     }
 
-    if (dto.terceroId) {
+    if (dto.terceroId !== undefined) {
+      if (!dto.terceroId) {
+        throw new BadRequestException('El cliente no puede quedar vacío');
+      }
       const tercero = await this.terceroRepository.findById(dto.terceroId);
-      if (!tercero) throw new NotFoundException('Tercero no encontrado');
+      if (!tercero) throw new NotFoundException('Cliente no encontrado');
       if (tercero.tipoRelacion !== 'CLIENTE' && tercero.tipoRelacion !== 'CLIENTE_PROVEEDOR') {
         throw new BadRequestException('El tercero debe ser de tipo CLIENTE o CLIENTE_PROVEEDOR');
       }
     }
 
-    return this.saleRepository.update(id, { terceroId: dto.terceroId });
+    if (dto.medicoId !== undefined) {
+      if (!dto.medicoId) {
+        throw new BadRequestException('El médico no puede quedar vacío');
+      }
+      const medico = await this.terceroRepository.findById(dto.medicoId);
+      if (!medico) throw new NotFoundException('Médico no encontrado');
+      if (medico.tipoRelacion !== 'MEDICO') {
+        throw new BadRequestException('El médico debe ser de tipo MEDICO');
+      }
+    }
+
+    const changes: { campo: string; valorAnterior?: string; valorNuevo?: string }[] = [];
+
+    if (dto.terceroId !== undefined && dto.terceroId !== sale.terceroId) {
+      changes.push({
+        campo: 'terceroId',
+        valorAnterior: sale.terceroId ?? '',
+        valorNuevo: dto.terceroId,
+      });
+    }
+
+    if (dto.medicoId !== undefined && dto.medicoId !== sale.medicoId) {
+      changes.push({
+        campo: 'medicoId',
+        valorAnterior: sale.medicoId ?? '',
+        valorNuevo: dto.medicoId,
+      });
+    }
+
+    const updateData: any = {};
+    if (dto.terceroId !== undefined) updateData.terceroId = dto.terceroId;
+    if (dto.medicoId !== undefined) updateData.medicoId = dto.medicoId;
+
+    if (dto.details) {
+      let newTotal = 0;
+      for (const detail of dto.details) {
+        newTotal += detail.quantity * detail.unitPrice;
+      }
+      updateData.total = newTotal;
+
+      changes.push({
+        campo: 'details',
+        valorAnterior: JSON.stringify(sale.details?.map(d => ({ productId: d.productId, packageId: d.packageId, quantity: d.quantity, unitPrice: d.unitPrice }))),
+        valorNuevo: JSON.stringify(dto.details.map(d => ({ productId: d.productId, packageId: d.packageId, quantity: d.quantity, unitPrice: d.unitPrice }))),
+      });
+    }
+
+    const updated = await this.saleRepository.update(id, updateData);
+
+    for (const change of changes) {
+      await this.historyRepository.create({
+        saleId: id,
+        campo: change.campo,
+        valorAnterior: change.valorAnterior,
+        valorNuevo: change.valorNuevo,
+        userId,
+      });
+    }
+
+    return updated;
   }
 
   async cancel(id: string, dto: CancelSaleDto): Promise<Sale> {
