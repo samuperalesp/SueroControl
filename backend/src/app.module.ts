@@ -11,6 +11,7 @@ import { InventoryMovementModule } from './inventory-movement.module';
 import { DashboardModule } from './dashboard.module';
 import { AuthModule } from './auth.module';
 import { UserModule } from './user.module';
+import { PackageSessionModule } from './package-session.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UserModule } from './user.module';
     PackageModule,
     InventoryMovementModule,
     DashboardModule,
+    PackageSessionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

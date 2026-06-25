@@ -76,3 +76,49 @@ export interface ComprobanteData {
   }[];
   total: number;
 }
+
+export interface PackageSession {
+  id: string;
+  saleId: string;
+  patientId?: string;
+  medicoId: string;
+  packageId: string;
+  cantidadSesiones: number;
+  sesionesConsumidas: number;
+  sesionesPendientes: number;
+  precioUnitario: number;
+  subtotal: number;
+  descuentoPorcentaje: number;
+  descuentoValor: number;
+  totalPagado: number;
+  estado: string;
+  fechaInicio: string;
+  fechaVencimiento?: string;
+  createdAt: string;
+  updatedAt: string;
+  sale?: Sale;
+  patient?: any;
+  medico?: any;
+  package?: any;
+  applications?: SessionApplication[];
+}
+
+export interface SessionApplication {
+  id: string;
+  packageSessionId: string;
+  salePackageId?: string;
+  sesionNumero: number;
+  fechaAplicacion: string;
+  observaciones?: string;
+  userId?: string;
+  createdAt: string;
+}
+
+export interface CreatePackageSessionDto {
+  patientId?: string;
+  medicoId: string;
+  packageId: string;
+  cantidadSesiones: number;
+  descuentoPorcentaje: number;
+  fechaVencimiento?: string;
+}

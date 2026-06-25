@@ -61,10 +61,12 @@ model Tercero {
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
 
-  purchases            Purchase[]
-  sales                Sale[]
-  medicoSales          Sale[]           @relation("MedicoSales")
-  salePackagesMedico   SalePackage[]
+  purchases                 Purchase[]
+  sales                     Sale[]
+  medicoSales               Sale[]                    @relation("MedicoSales")
+  salePackagesMedico        SalePackage[]
+  packageSessionsPatient    PackageSession[]           @relation("PackageSessionPatient")
+  packageSessionsMedico     PackageSession[]           @relation("MedicoPackageSession")
 
   @@unique([tipoDocumento, numeroDocumento])
 }
@@ -114,9 +116,10 @@ model Sale {
 
   tercero      Tercero?      @relation(fields: [terceroId], references: [id])
   medico       Tercero?      @relation("MedicoSales", fields: [medicoId], references: [id])
-  details      SaleDetail[]
-  salePackages SalePackage[]
-  history      SaleHistory[]
+  details         SaleDetail[]
+  salePackages    SalePackage[]
+  history         SaleHistory[]
+  packageSessions PackageSession[]
 }
 
 model SaleHistory {
@@ -156,10 +159,11 @@ model Package {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  details        PackageDetail[]
-  operatingCosts PackageOperatingCost[]
-  saleDetails    SaleDetail[]
-  salePackages   SalePackage[]
+  details         PackageDetail[]
+  operatingCosts  PackageOperatingCost[]
+  saleDetails     SaleDetail[]
+  salePackages    SalePackage[]
+  packageSessions PackageSession[]
 }
 
 model PackageDetail {
@@ -200,6 +204,48 @@ model SalePackage {
   sale    Sale     @relation(fields: [saleId], references: [id])
   package Package  @relation(fields: [packageId], references: [id])
   medico  Tercero? @relation(fields: [medicoId], references: [id])
+  sessionApplications SessionApplication[]
+}
+
+model PackageSession {
+  id                  String   @id @default(uuid())
+  saleId              String
+  patientId           String?
+  medicoId            String
+  packageId           String
+  cantidadSesiones    Int
+  sesionesConsumidas  Int      @default(0)
+  sesionesPendientes  Int
+  precioUnitario      Float
+  subtotal            Float
+  descuentoPorcentaje Float    @default(0)
+  descuentoValor      Float    @default(0)
+  totalPagado         Float
+  estado              String   @default("ACTIVA")
+  fechaInicio         DateTime @default(now())
+  fechaVencimiento    DateTime?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  sale    Sale     @relation(fields: [saleId], references: [id])
+  patient Tercero? @relation("PackageSessionPatient", fields: [patientId], references: [id])
+  medico  Tercero  @relation("MedicoPackageSession", fields: [medicoId], references: [id])
+  package Package  @relation(fields: [packageId], references: [id])
+  applications SessionApplication[]
+}
+
+model SessionApplication {
+  id                String   @id @default(uuid())
+  packageSessionId  String
+  salePackageId     String?
+  sesionNumero      Int
+  fechaAplicacion   DateTime @default(now())
+  observaciones     String?
+  userId            String?
+  createdAt         DateTime @default(now())
+
+  packageSession PackageSession @relation(fields: [packageSessionId], references: [id])
+  salePackage    SalePackage?   @relation(fields: [salePackageId], references: [id])
 }
 
 model InventoryMovement {
