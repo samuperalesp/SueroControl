@@ -14,6 +14,7 @@ export interface Purchase {
   facturaNumero?: string;
   terceroId?: string;
   total: number;
+  fechaCompra?: string;
   createdAt: string;
   details?: PurchaseDetail[];
 }
@@ -29,10 +30,12 @@ export interface CreatePurchaseDto {
   pedidoId?: string;
   facturaNumero?: string;
   terceroId?: string;
+  fechaCompra?: string;
   details: PurchaseDetailDto[];
 }
 
 export interface UpdatePurchaseDto {
   terceroId?: string;
+  fechaCompra?: string;
   details?: PurchaseDetailDto[];
 }

@@ -136,6 +136,7 @@ export class SaleService {
       terceroId: dto.terceroId,
       medicoId: dto.medicoId,
       total,
+      fechaVenta: dto.fechaVenta ? new Date(dto.fechaVenta) : new Date(),
       details: detailEntries,
     });
 
@@ -263,6 +264,7 @@ export class SaleService {
     const updateData: any = {};
     if (dto.terceroId !== undefined) updateData.terceroId = dto.terceroId;
     if (dto.medicoId !== undefined) updateData.medicoId = dto.medicoId;
+    if (dto.fechaVenta !== undefined) updateData.fechaVenta = new Date(dto.fechaVenta);
 
     if (dto.details) {
       let newTotal = 0;
@@ -365,7 +367,7 @@ export class SaleService {
     return {
       comprobante: `FV-${String(sale.consecutivo).padStart(6, '0')}`,
       consecutivo: sale.consecutivo,
-      fecha: sale.createdAt,
+      fecha: sale.fechaVenta ?? sale.createdAt,
       estado: sale.estado,
       anuladaMotivo: sale.anuladaMotivo,
       cliente: tercero ? {

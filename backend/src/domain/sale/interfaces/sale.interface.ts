@@ -31,6 +31,7 @@ export interface UpdateSaleData {
   medicoId?: string;
   total?: number;
   estado?: string;
+  fechaVenta?: Date;
   details?: SaleDetailData[];
 }
 
@@ -40,6 +41,7 @@ export interface ISaleRepository {
     terceroId?: string;
     medicoId?: string;
     total: number;
+    fechaVenta?: Date;
     costoTotal?: number;
     utilidadTotal?: number;
     gananciaMedico?: number;

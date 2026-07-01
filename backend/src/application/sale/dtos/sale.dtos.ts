@@ -27,6 +27,10 @@ export class CreateSaleDto {
   @IsString()
   medicoId: string;
 
+  @IsOptional()
+  @IsDateString()
+  fechaVenta?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => SaleDetailDto)
@@ -48,6 +52,10 @@ export class UpdateSaleDto {
   @IsString()
   @IsNotEmpty()
   estado?: string;
+
+  @IsOptional()
+  @IsDateString()
+  fechaVenta?: string;
 
   @IsOptional()
   @IsArray()

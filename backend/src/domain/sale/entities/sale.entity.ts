@@ -6,6 +6,7 @@ export class Sale {
   terceroId?: string;
   medicoId?: string;
   total: number;
+  fechaVenta?: Date;
   costoTotal?: number;
   utilidadTotal?: number;
   gananciaMedico?: number;

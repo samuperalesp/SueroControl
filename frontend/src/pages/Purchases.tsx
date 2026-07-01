@@ -61,17 +61,18 @@ export default function Purchases() {
     setShowModal(true);
   }
 
-  async function handleSave(data: { facturaNumero?: string; terceroId?: string; details: { productId: string; quantity: number; unitCost: number }[] }) {
+  async function handleSave(data: { facturaNumero?: string; terceroId?: string; fechaCompra?: string; details: { productId: string; quantity: number; unitCost: number }[] }) {
     if (editingPurchase) {
-      const dto: { terceroId?: string; details?: { productId: string; quantity: number; unitCost: number }[] } = {};
+      const dto: { terceroId?: string; fechaCompra?: string; details?: { productId: string; quantity: number; unitCost: number }[] } = {};
       if (data.terceroId !== editingPurchase.terceroId) dto.terceroId = data.terceroId;
+      if (data.fechaCompra) dto.fechaCompra = data.fechaCompra;
       const hasDetailChanges = JSON.stringify(data.details) !== JSON.stringify(editingPurchase.details?.map(d => ({ productId: d.productId, quantity: d.quantity, unitCost: d.unitCost })));
       if (hasDetailChanges) dto.details = data.details;
       if (Object.keys(dto).length > 0) {
         await updatePurchase(editingPurchase.id, dto);
       }
     } else {
-      await createPurchase({ tipo: modalTipo, facturaNumero: data.facturaNumero, terceroId: data.terceroId, details: data.details });
+      await createPurchase({ tipo: modalTipo, facturaNumero: data.facturaNumero, terceroId: data.terceroId, fechaCompra: data.fechaCompra, details: data.details });
     }
     setEditingPurchase(null);
     setShowModal(false);
@@ -155,7 +156,7 @@ export default function Purchases() {
             <tbody className="divide-y divide-gray-100">
               {activeList.map(p => (
                 <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500">{new Date(p.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-gray-500">{new Date(p.fechaCompra ?? p.createdAt).toLocaleDateString()}</td>
                   <td className="px-4 py-3 text-gray-600">{p.facturaNumero || '-'}</td>
                   <td className="px-4 py-3 text-gray-800">{getProveedorName(p.terceroId)}</td>
                   <td className="px-4 py-3 text-gray-500">

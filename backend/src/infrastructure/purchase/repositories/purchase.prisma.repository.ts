@@ -13,6 +13,7 @@ export class PurchasePrismaRepository implements IPurchaseRepository {
     facturaNumero?: string;
     terceroId?: string;
     total: number;
+    fechaCompra?: Date;
     details: { productId: string; quantity: number; unitCost: number; subTotal: number }[];
   }): Promise<Purchase> {
     const created = await this.prisma.purchase.create({
@@ -22,6 +23,7 @@ export class PurchasePrismaRepository implements IPurchaseRepository {
         facturaNumero: data.facturaNumero,
         terceroId: data.terceroId,
         total: data.total,
+        fechaCompra: data.fechaCompra ?? new Date(),
         details: {
           create: data.details,
         },
@@ -33,7 +35,7 @@ export class PurchasePrismaRepository implements IPurchaseRepository {
 
   async findAll(): Promise<Purchase[]> {
     return this.prisma.purchase.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { fechaCompra: { sort: 'desc', nulls: 'last' } },
       include: { details: true },
     }) as Promise<Purchase[]>;
   }
@@ -45,13 +47,14 @@ export class PurchasePrismaRepository implements IPurchaseRepository {
     }) as Promise<Purchase | null>;
   }
 
-  async update(id: string, data: { tipo?: string; pedidoId?: string; terceroId?: string; total?: number; details?: { productId: string; quantity: number; unitCost: number; subTotal: number }[] }): Promise<Purchase | null> {
+  async update(id: string, data: { tipo?: string; pedidoId?: string; terceroId?: string; total?: number; fechaCompra?: Date; details?: { productId: string; quantity: number; unitCost: number; subTotal: number }[] }): Promise<Purchase | null> {
     try {
       const updateData: any = {};
       if (data.tipo !== undefined) updateData.tipo = data.tipo;
       if (data.pedidoId !== undefined) updateData.pedidoId = data.pedidoId;
       if (data.terceroId !== undefined) updateData.terceroId = data.terceroId;
       if (data.total !== undefined) updateData.total = data.total;
+      if (data.fechaCompra !== undefined) updateData.fechaCompra = data.fechaCompra;
 
       if (data.details) {
         await this.prisma.purchaseDetail.deleteMany({ where: { purchaseId: id } });

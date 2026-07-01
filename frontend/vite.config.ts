@@ -15,6 +15,7 @@ export default defineConfig({
       '/dashboard': 'http://localhost:3000',
       '/auth': 'http://localhost:3000',
       '/users': 'http://localhost:3000',
+      '/package-sessions': 'http://localhost:3000',
     },
   },
 })

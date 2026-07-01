@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsArray, Min, IsOptional, ValidateNested, IsNotEmpty } from 'class-validator';
+import { IsString, IsNumber, IsArray, Min, IsOptional, ValidateNested, IsNotEmpty, IsDateString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class PurchaseDetailDto {
@@ -31,6 +31,10 @@ export class CreatePurchaseDto {
   @IsOptional()
   terceroId?: string;
 
+  @IsOptional()
+  @IsDateString()
+  fechaCompra?: string;
+
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => PurchaseDetailDto)
@@ -42,6 +46,10 @@ export class UpdatePurchaseDto {
   @IsString()
   @IsNotEmpty()
   terceroId?: string;
+
+  @IsOptional()
+  @IsDateString()
+  fechaCompra?: string;
 
   @IsOptional()
   @IsArray()

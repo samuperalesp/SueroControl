@@ -15,6 +15,7 @@ export class SalePrismaRepository implements ISaleRepository {
     terceroId?: string;
     medicoId?: string;
     total: number;
+    fechaVenta?: Date;
     costoTotal?: number;
     utilidadTotal?: number;
     gananciaMedico?: number;
@@ -27,6 +28,7 @@ export class SalePrismaRepository implements ISaleRepository {
         terceroId: data.terceroId,
         medicoId: data.medicoId,
         total: data.total,
+        fechaVenta: data.fechaVenta ?? new Date(),
         costoTotal: data.costoTotal,
         utilidadTotal: data.utilidadTotal,
         gananciaMedico: data.gananciaMedico,
@@ -44,14 +46,14 @@ export class SalePrismaRepository implements ISaleRepository {
       if (params.consecutivo) where.consecutivo = params.consecutivo;
       if (params.terceroId) where.terceroId = params.terceroId;
       if (params.fechaDesde || params.fechaHasta) {
-        where.createdAt = {};
-        if (params.fechaDesde) where.createdAt.gte = new Date(params.fechaDesde);
-        if (params.fechaHasta) where.createdAt.lte = new Date(params.fechaHasta);
+        where.fechaVenta = {};
+        if (params.fechaDesde) where.fechaVenta.gte = new Date(params.fechaDesde);
+        if (params.fechaHasta) where.fechaVenta.lte = new Date(params.fechaHasta);
       }
     }
     return this.prisma.sale.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { fechaVenta: { sort: 'desc', nulls: 'last' } },
       include: this.include,
     }) as Promise<Sale[]>;
   }
@@ -83,6 +85,7 @@ export class SalePrismaRepository implements ISaleRepository {
     if (data.medicoId !== undefined) updateData.medicoId = data.medicoId;
     if (data.total !== undefined) updateData.total = data.total;
     if (data.estado !== undefined) updateData.estado = data.estado;
+    if (data.fechaVenta !== undefined) updateData.fechaVenta = data.fechaVenta;
 
     if (data.details) {
       await this.prisma.saleDetail.deleteMany({ where: { saleId: id } });

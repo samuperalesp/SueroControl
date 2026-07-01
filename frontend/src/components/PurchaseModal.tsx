@@ -19,7 +19,7 @@ interface Props {
     terceroId?: string;
     details?: PurchaseDetail[];
   };
-  onSave: (data: { facturaNumero?: string; terceroId?: string; details: LineItem[] }) => Promise<void>;
+  onSave: (data: { facturaNumero?: string; terceroId?: string; fechaCompra?: string; details: LineItem[] }) => Promise<void>;
   onClose: () => void;
 }
 
@@ -50,6 +50,7 @@ export default function PurchaseModal({ tipo, products, proveedores, initialData
     return '';
   });
   const [showProveedorDropdown, setShowProveedorDropdown] = useState(false);
+  const [fechaCompra, setFechaCompra] = useState(new Date().toISOString().split('T')[0]);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const searchRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -148,7 +149,7 @@ export default function PurchaseModal({ tipo, products, proveedores, initialData
     if (!validate()) return;
     setSaving(true);
     try {
-      await onSave({ facturaNumero: facturaNumero || undefined, terceroId: selectedProveedorId || undefined, details: items });
+      await onSave({ facturaNumero: facturaNumero || undefined, terceroId: selectedProveedorId || undefined, fechaCompra, details: items });
     } finally {
       setSaving(false);
     }
@@ -168,10 +169,16 @@ export default function PurchaseModal({ tipo, products, proveedores, initialData
 
         {errors.general && <p className="text-red-500 text-xs mb-3">{errors.general}</p>}
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-3 gap-4 mb-4">
           <div>
             <label className="text-xs font-medium text-gray-600 mb-1 block">N° Factura Proveedor</label>
             <input type="text" value={facturaNumero} onChange={e => setFacturaNumero(e.target.value)} placeholder="Opcional"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-600 mb-1 block">Fecha de la Compra</label>
+            <input type="date" value={fechaCompra} onChange={e => setFechaCompra(e.target.value)}
+              max={new Date().toISOString().split('T')[0]}
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
           </div>
           <div ref={proveedorRef} className="relative">

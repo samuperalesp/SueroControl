@@ -78,6 +78,7 @@ model Purchase {
   facturaNumero String?
   terceroId     String?
   total         Float
+  fechaCompra   DateTime?
   createdAt     DateTime @default(now())
 
   pedidoOrigen Purchase?    @relation("PedidoToCompra", fields: [pedidoId], references: [id])
@@ -104,6 +105,7 @@ model Sale {
   terceroId      String?
   medicoId       String?
   total          Float
+  fechaVenta     DateTime?
   costoTotal     Float?
   utilidadTotal  Float?
   gananciaMedico Float?

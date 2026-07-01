@@ -68,6 +68,7 @@ export class PurchaseService {
       facturaNumero: dto.facturaNumero,
       terceroId: dto.terceroId,
       total,
+      fechaCompra: dto.fechaCompra ? new Date(dto.fechaCompra) : new Date(),
       details: detailEntries,
     });
 
@@ -128,12 +129,14 @@ export class PurchaseService {
         total += subTotal;
         details.push({ productId: detail.productId, quantity: detail.quantity, unitCost: detail.unitCost, subTotal });
       }
-      const updated = await this.purchaseRepository.update(id, { terceroId: dto.terceroId, total, details });
+      const updated = await this.purchaseRepository.update(id, { terceroId: dto.terceroId, fechaCompra: dto.fechaCompra ? new Date(dto.fechaCompra) : undefined, total, details });
       if (!updated) throw new NotFoundException('Error al actualizar pedido');
       return updated;
     }
 
-    const updated = await this.purchaseRepository.update(id, { terceroId: dto.terceroId });
+    const updateData: any = { terceroId: dto.terceroId };
+    if (dto.fechaCompra !== undefined) updateData.fechaCompra = new Date(dto.fechaCompra);
+    const updated = await this.purchaseRepository.update(id, updateData);
     if (!updated) throw new NotFoundException('Error al actualizar pedido');
     return updated;
   }

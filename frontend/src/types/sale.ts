@@ -14,6 +14,7 @@ export interface Sale {
   terceroId?: string;
   medicoId?: string;
   total: number;
+  fechaVenta?: string;
   costoTotal?: number;
   utilidadTotal?: number;
   gananciaMedico?: number;
@@ -36,12 +37,14 @@ export interface SaleDetailDto {
 export interface CreateSaleDto {
   terceroId?: string;
   medicoId: string;
+  fechaVenta?: string;
   details: SaleDetailDto[];
 }
 
 export interface UpdateSaleDto {
   terceroId?: string;
   medicoId?: string;
+  fechaVenta?: string;
   details?: SaleDetailDto[];
 }
 

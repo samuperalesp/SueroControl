@@ -51,6 +51,7 @@ export default function Sales() {
   const medicoRef = useRef<HTMLDivElement | null>(null);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [fechaVenta, setFechaVenta] = useState(new Date().toISOString().split('T')[0]);
 
   // Edit modal
   const [showEdit, setShowEdit] = useState(false);
@@ -69,6 +70,7 @@ export default function Sales() {
   const editSearchRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [editSaving, setEditSaving] = useState(false);
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
+  const [editFechaVenta, setEditFechaVenta] = useState('');
 
   // Cancel modal
   const [showCancel, setShowCancel] = useState(false);
@@ -271,7 +273,7 @@ export default function Sales() {
     if (!validate()) return;
     setSaving(true);
     try {
-      await createSale({ terceroId: selectedClienteId || undefined, medicoId: selectedMedicoId, details: items });
+      await createSale({ terceroId: selectedClienteId || undefined, medicoId: selectedMedicoId, fechaVenta, details: items });
       resetCreateModal();
       load();
     } catch (e: any) { setErrors({ general: e.message }); }
@@ -286,6 +288,7 @@ export default function Sales() {
     setSelectedClienteId('');
     setMedicoSearch('');
     setSelectedMedicoId('');
+    setFechaVenta(new Date().toISOString().split('T')[0]);
     setErrors({});
   }
 
@@ -327,6 +330,7 @@ export default function Sales() {
       const prod = products.find(p => p.id === item.productId);
       return prod ? `${prod.codigo} - ${prod.nombre}` : '';
     }));
+    setEditFechaVenta(sale.fechaVenta ? sale.fechaVenta.split('T')[0] : new Date().toISOString().split('T')[0]);
     setEditErrors({});
     setEditOpenDropdown(null);
     setShowEdit(true);
@@ -431,6 +435,7 @@ export default function Sales() {
           unitPrice: i.unitPrice,
         }));
       }
+      if (editFechaVenta) dto.fechaVenta = editFechaVenta;
       if (Object.keys(dto).length === 0) {
         setShowEdit(false); return;
       }
@@ -726,7 +731,7 @@ export default function Sales() {
                   {sales.map(s => (
                     <tr key={s.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-gray-800 font-medium">#{String(s.consecutivo).padStart(6, '0')}</td>
-                      <td className="px-4 py-3 text-gray-500">{new Date(s.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-gray-500">{new Date(s.fechaVenta ?? s.createdAt).toLocaleDateString()}</td>
                       <td className="px-4 py-3 text-gray-800">
                         <div>{getClienteName(s)}</div>
                         <div className="text-xs text-gray-400">{getClienteDoc(s)}</div>
@@ -815,6 +820,13 @@ export default function Sales() {
                   ))}
                 </ul>
               )}
+            </div>
+
+            <div className="mb-4">
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Fecha de la Venta</label>
+              <input type="date" value={fechaVenta} onChange={e => setFechaVenta(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
 
             <div className="space-y-3">
@@ -962,6 +974,13 @@ export default function Sales() {
                   ))}
                 </ul>
               )}
+            </div>
+
+            <div className="mb-4">
+              <label className="text-xs font-medium text-gray-600 mb-1 block">Fecha de la Venta</label>
+              <input type="date" value={editFechaVenta} onChange={e => setEditFechaVenta(e.target.value)}
+                max={new Date().toISOString().split('T')[0]}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
 
             <div className="space-y-3">

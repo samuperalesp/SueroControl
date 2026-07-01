@@ -7,6 +7,7 @@ export class Purchase {
   facturaNumero?: string;
   terceroId?: string;
   total: number;
+  fechaCompra?: Date;
   createdAt: Date;
   details?: PurchaseDetail[];
 }

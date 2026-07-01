@@ -9,9 +9,10 @@ export interface IPurchaseRepository {
     facturaNumero?: string;
     terceroId?: string;
     total: number;
+    fechaCompra?: Date;
     details: { productId: string; quantity: number; unitCost: number; subTotal: number }[];
   }): Promise<Purchase>;
   findAll(): Promise<Purchase[]>;
   findById(id: string): Promise<Purchase | null>;
-  update(id: string, data: { tipo?: string; pedidoId?: string; terceroId?: string; total?: number; details?: { productId: string; quantity: number; unitCost: number; subTotal: number }[] }): Promise<Purchase | null>;
+  update(id: string, data: { tipo?: string; pedidoId?: string; terceroId?: string; total?: number; fechaCompra?: Date; details?: { productId: string; quantity: number; unitCost: number; subTotal: number }[] }): Promise<Purchase | null>;
 }
