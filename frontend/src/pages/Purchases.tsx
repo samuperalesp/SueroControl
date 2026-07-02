@@ -156,7 +156,7 @@ export default function Purchases() {
             <tbody className="divide-y divide-gray-100">
               {activeList.map(p => (
                 <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500">{new Date(p.fechaCompra ?? p.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-gray-500">{(p.fechaCompra ?? p.createdAt).split('T')[0]}</td>
                   <td className="px-4 py-3 text-gray-600">{p.facturaNumero || '-'}</td>
                   <td className="px-4 py-3 text-gray-800">{getProveedorName(p.terceroId)}</td>
                   <td className="px-4 py-3 text-gray-500">

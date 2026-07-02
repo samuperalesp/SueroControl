@@ -731,7 +731,7 @@ export default function Sales() {
                   {sales.map(s => (
                     <tr key={s.id} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-gray-800 font-medium">#{String(s.consecutivo).padStart(6, '0')}</td>
-                      <td className="px-4 py-3 text-gray-500">{new Date(s.fechaVenta ?? s.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-gray-500">{(s.fechaVenta ?? s.createdAt).split('T')[0]}</td>
                       <td className="px-4 py-3 text-gray-800">
                         <div>{getClienteName(s)}</div>
                         <div className="text-xs text-gray-400">{getClienteDoc(s)}</div>

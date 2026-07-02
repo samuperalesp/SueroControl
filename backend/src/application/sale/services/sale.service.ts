@@ -136,7 +136,7 @@ export class SaleService {
       terceroId: dto.terceroId,
       medicoId: dto.medicoId,
       total,
-      fechaVenta: dto.fechaVenta ? new Date(dto.fechaVenta) : new Date(),
+      fechaVenta: dto.fechaVenta ? new Date(dto.fechaVenta + 'T00:00:00') : new Date(),
       details: detailEntries,
     });
 
@@ -264,7 +264,7 @@ export class SaleService {
     const updateData: any = {};
     if (dto.terceroId !== undefined) updateData.terceroId = dto.terceroId;
     if (dto.medicoId !== undefined) updateData.medicoId = dto.medicoId;
-    if (dto.fechaVenta !== undefined) updateData.fechaVenta = new Date(dto.fechaVenta);
+    if (dto.fechaVenta !== undefined) updateData.fechaVenta = new Date(dto.fechaVenta + 'T00:00:00');
 
     if (dto.details) {
       let newTotal = 0;

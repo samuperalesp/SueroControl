@@ -47,8 +47,8 @@ export class SalePrismaRepository implements ISaleRepository {
       if (params.terceroId) where.terceroId = params.terceroId;
       if (params.fechaDesde || params.fechaHasta) {
         where.fechaVenta = {};
-        if (params.fechaDesde) where.fechaVenta.gte = new Date(params.fechaDesde);
-        if (params.fechaHasta) where.fechaVenta.lte = new Date(params.fechaHasta);
+        if (params.fechaDesde) where.fechaVenta.gte = new Date(params.fechaDesde + 'T00:00:00');
+        if (params.fechaHasta) where.fechaVenta.lte = new Date(params.fechaHasta + 'T00:00:00');
       }
     }
     return this.prisma.sale.findMany({
