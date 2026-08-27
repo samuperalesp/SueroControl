@@ -13,8 +13,10 @@ import { INVENTORY_MOVEMENT_REPOSITORY } from './domain/inventory-movement/inter
 import { InventoryMovementPrismaRepository } from './infrastructure/inventory-movement/repositories/inventory-movement.prisma.repository';
 import { TERCERO_REPOSITORY } from './domain/tercero/interfaces/tercero.interface';
 import { TerceroPrismaRepository } from './infrastructure/tercero/repositories/tercero.prisma.repository';
+import { WarehouseModule } from './warehouse.module';
 
 @Module({
+  imports: [WarehouseModule],
   controllers: [SaleController],
   providers: [
     SaleService,

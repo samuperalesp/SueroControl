@@ -8,11 +8,12 @@ export interface IPurchaseRepository {
     pedidoId?: string;
     facturaNumero?: string;
     terceroId?: string;
+    warehouseId: string;
     total: number;
     fechaCompra?: Date;
     details: { productId: string; quantity: number; unitCost: number; subTotal: number }[];
   }): Promise<Purchase>;
-  findAll(): Promise<Purchase[]>;
+  findAll(warehouseId?: string): Promise<Purchase[]>;
   findById(id: string): Promise<Purchase | null>;
-  update(id: string, data: { tipo?: string; pedidoId?: string; terceroId?: string; total?: number; fechaCompra?: Date; details?: { productId: string; quantity: number; unitCost: number; subTotal: number }[] }): Promise<Purchase | null>;
+  update(id: string, data: { tipo?: string; pedidoId?: string; terceroId?: string; warehouseId?: string; total?: number; fechaCompra?: Date; details?: { productId: string; quantity: number; unitCost: number; subTotal: number }[] }): Promise<Purchase | null>;
 }

@@ -5,6 +5,7 @@ export const INVENTORY_MOVEMENT_REPOSITORY = 'INVENTORY_MOVEMENT_REPOSITORY';
 export interface IInventoryMovementRepository {
   create(data: {
     productId: string;
+    warehouseId: string;
     movementType: string;
     quantity: number;
     stockBefore: number;
@@ -12,6 +13,6 @@ export interface IInventoryMovementRepository {
     referenceType: string;
     referenceId: string;
   }): Promise<InventoryMovement>;
-  findByProductId(productId: string): Promise<InventoryMovement[]>;
-  findAll(): Promise<InventoryMovement[]>;
+  findByProductId(productId: string, warehouseId?: string): Promise<InventoryMovement[]>;
+  findAll(warehouseId?: string): Promise<InventoryMovement[]>;
 }

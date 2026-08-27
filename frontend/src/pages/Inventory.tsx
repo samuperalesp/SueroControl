@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '../types/product';
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from '../api/productApi';
 import ProductModal from '../components/ProductModal';
+import { useWarehouse } from '../context/WarehouseContext';
 
 export default function Inventory() {
+  const { selectedWarehouseId } = useWarehouse();
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -12,14 +14,14 @@ export default function Inventory() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await fetchProducts();
+      const data = await fetchProducts(selectedWarehouseId ?? undefined);
       setProducts(data);
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedWarehouseId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -38,10 +40,11 @@ export default function Inventory() {
   }
 
   async function handleSave(data: Parameters<typeof createProduct>[0]) {
+    const payload = selectedWarehouseId ? { ...data, warehouseId: selectedWarehouseId } : data;
     if (modalProduct && modalProduct !== 'new') {
-      await updateProduct(modalProduct.id, data);
+      await updateProduct(modalProduct.id, payload);
     } else {
-      await createProduct(data);
+      await createProduct(payload);
     }
     setModalProduct(null);
     await load();

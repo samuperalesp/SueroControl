@@ -9,6 +9,10 @@ import { SALE_REPOSITORY } from '../../../domain/sale/interfaces/sale.interface'
 import type { ISaleRepository } from '../../../domain/sale/interfaces/sale.interface';
 import { TERCERO_REPOSITORY } from '../../../domain/tercero/interfaces/tercero.interface';
 import type { ITerceroRepository } from '../../../domain/tercero/interfaces/tercero.interface';
+import { WAREHOUSE_REPOSITORY } from '../../../domain/warehouse/interfaces/warehouse.interface';
+import type { IWarehouseRepository } from '../../../domain/warehouse/interfaces/warehouse.interface';
+import { WAREHOUSE_STOCK_REPOSITORY } from '../../../domain/warehouse-stock/interfaces/warehouse-stock.interface';
+import type { IWarehouseStockRepository } from '../../../domain/warehouse-stock/interfaces/warehouse-stock.interface';
 import { Package } from '../../../domain/package/entities/package.entity';
 import { CreatePackageDto, UpdatePackageDto } from '../dtos/package.dtos';
 import { SalePackage } from '../../../domain/package/entities/sale-package.entity';
@@ -22,7 +26,55 @@ export class PackageService {
     @Inject(SALE_REPOSITORY) private readonly saleRepository: ISaleRepository,
     @Inject(SALE_PACKAGE_REPOSITORY) private readonly salePackageRepository: ISalePackageRepository,
     @Inject(TERCERO_REPOSITORY) private readonly terceroRepository: ITerceroRepository,
+    @Inject(WAREHOUSE_REPOSITORY) private readonly warehouseRepository: IWarehouseRepository,
+    @Inject(WAREHOUSE_STOCK_REPOSITORY) private readonly warehouseStockRepository: IWarehouseStockRepository,
   ) {}
+
+  private async resolveWarehouseId(warehouseId?: string): Promise<string> {
+    if (warehouseId) {
+      const warehouse = await this.warehouseRepository.findById(warehouseId);
+      if (!warehouse || !warehouse.activo) {
+        throw new BadRequestException('Almacén no encontrado o inactivo');
+      }
+      return warehouse.id;
+    }
+    const principal = await this.warehouseRepository.findPrincipal();
+    if (!principal) {
+      throw new BadRequestException('No existe un almacén principal configurado');
+    }
+    return principal.id;
+  }
+
+  private async isPrincipalWarehouse(warehouseId: string): Promise<boolean> {
+    const principal = await this.warehouseRepository.findPrincipal();
+    return principal?.id === warehouseId;
+  }
+
+  private async getAvailableStock(warehouseId: string, productId: string): Promise<number> {
+    const current = await this.warehouseStockRepository.findByWarehouseAndProduct(warehouseId, productId);
+    return current?.stock ?? 0;
+  }
+
+  private async applyExit(
+    warehouseId: string,
+    isPrincipal: boolean,
+    productId: string,
+    quantity: number,
+  ): Promise<{ stockBefore: number; stockAfter: number }> {
+    const current = await this.warehouseStockRepository.findByWarehouseAndProduct(warehouseId, productId);
+    const stockBefore = current?.stock ?? 0;
+    if (stockBefore < quantity) {
+      throw new BadRequestException('Stock insuficiente en el almacén');
+    }
+    const updated = await this.warehouseStockRepository.updateStock(warehouseId, productId, -quantity);
+    if (!updated) {
+      throw new BadRequestException('No se pudo actualizar el stock del almacén');
+    }
+    if (isPrincipal) {
+      await this.productRepository.updateStock(productId, -quantity);
+    }
+    return { stockBefore, stockAfter: updated.stock };
+  }
 
   async create(dto: CreatePackageDto): Promise<Package> {
     for (const detail of dto.details) {
@@ -99,7 +151,7 @@ export class PackageService {
     return this.packageRepository.delete(id);
   }
 
-  async sellPackage(packageId: string, terceroId?: string, medicoId?: string) {
+  async sellPackage(packageId: string, terceroId?: string, medicoId?: string, warehouseId?: string) {
     const pkg = await this.findById(packageId);
     if (!pkg.details || pkg.details.length === 0) {
       throw new BadRequestException('Package has no details');
@@ -113,13 +165,17 @@ export class PackageService {
       }
     }
 
+    const resolvedWarehouseId = await this.resolveWarehouseId(warehouseId);
+    const isPrincipal = await this.isPrincipalWarehouse(resolvedWarehouseId);
+
     // Calculate medication costs from current product costs
     let costoMedicamentos = 0;
     for (const detail of pkg.details) {
       const product = await this.productRepository.findById(detail.productId);
       if (!product) throw new NotFoundException(`Product ${detail.productId} not found`);
-      if (product.stockActual < detail.quantity) {
-        throw new BadRequestException(`Insufficient stock for ${product.nombre}. Available: ${product.stockActual}, requested: ${detail.quantity}`);
+      const available = await this.getAvailableStock(resolvedWarehouseId, detail.productId);
+      if (available < detail.quantity) {
+        throw new BadRequestException(`Insufficient stock for ${product.nombre}. Available: ${available}, requested: ${detail.quantity}`);
       }
       costoMedicamentos += product.costoCompra * detail.quantity;
     }
@@ -134,16 +190,11 @@ export class PackageService {
 
     // Discount inventory for each product
     for (const detail of pkg.details) {
-      const product = await this.productRepository.findById(detail.productId);
-      if (!product) throw new NotFoundException(`Product ${detail.productId} not found`);
-
-      const stockBefore = product.stockActual;
-      const stockAfter = stockBefore - detail.quantity;
-
-      await this.productRepository.updateStock(detail.productId, -detail.quantity);
+      const { stockBefore, stockAfter } = await this.applyExit(resolvedWarehouseId, isPrincipal, detail.productId, detail.quantity);
 
       await this.movementRepository.create({
         productId: detail.productId,
+        warehouseId: resolvedWarehouseId,
         movementType: 'EXIT',
         quantity: detail.quantity,
         stockBefore,
@@ -161,6 +212,7 @@ export class PackageService {
       consecutivo,
       terceroId,
       medicoId,
+      warehouseId: resolvedWarehouseId,
       total: pkg.precio,
       costoTotal,
       utilidadTotal: utilidad,
@@ -193,18 +245,17 @@ export class PackageService {
 
     // Update movements with sale ID
     for (const detail of pkg.details) {
-      const product = await this.productRepository.findById(detail.productId);
-      if (product) {
-        await this.movementRepository.create({
-          productId: detail.productId,
-          movementType: 'EXIT',
-          quantity: detail.quantity,
-          stockBefore: product.stockActual + detail.quantity,
-          stockAfter: product.stockActual,
-          referenceType: 'PACKAGE_SALE',
-          referenceId: sale.id,
-        });
-      }
+      const stockAfter = await this.getAvailableStock(resolvedWarehouseId, detail.productId);
+      await this.movementRepository.create({
+        productId: detail.productId,
+        warehouseId: resolvedWarehouseId,
+        movementType: 'EXIT',
+        quantity: detail.quantity,
+        stockBefore: stockAfter + detail.quantity,
+        stockAfter,
+        referenceType: 'PACKAGE_SALE',
+        referenceId: sale.id,
+      });
     }
 
     return {

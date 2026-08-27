@@ -31,6 +31,10 @@ export class CreatePurchaseDto {
   @IsOptional()
   terceroId?: string;
 
+  @IsString()
+  @IsOptional()
+  warehouseId?: string;
+
   @IsOptional()
   @IsDateString()
   fechaCompra?: string;
@@ -46,6 +50,11 @@ export class UpdatePurchaseDto {
   @IsString()
   @IsNotEmpty()
   terceroId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  warehouseId?: string;
 
   @IsOptional()
   @IsDateString()

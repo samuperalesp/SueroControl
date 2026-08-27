@@ -9,11 +9,11 @@ export class InventoryMovementService {
     @Inject(INVENTORY_MOVEMENT_REPOSITORY) private readonly movementRepository: IInventoryMovementRepository,
   ) {}
 
-  async findAll(): Promise<InventoryMovement[]> {
-    return this.movementRepository.findAll();
+  async findAll(warehouseId?: string): Promise<InventoryMovement[]> {
+    return this.movementRepository.findAll(warehouseId);
   }
 
-  async findByProductId(productId: string): Promise<InventoryMovement[]> {
-    return this.movementRepository.findByProductId(productId);
+  async findByProductId(productId: string, warehouseId?: string): Promise<InventoryMovement[]> {
+    return this.movementRepository.findByProductId(productId, warehouseId);
   }
 }

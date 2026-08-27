@@ -37,6 +37,7 @@ export interface SaleDetailDto {
 export interface CreateSaleDto {
   terceroId?: string;
   medicoId: string;
+  warehouseId?: string;
   fechaVenta?: string;
   details: SaleDetailDto[];
 }
@@ -55,6 +56,7 @@ export interface CancelSaleDto {
 export interface SaleSearchParams {
   consecutivo?: number;
   terceroId?: string;
+  warehouseId?: string;
   fechaDesde?: string;
   fechaHasta?: string;
 }
@@ -120,6 +122,7 @@ export interface SessionApplication {
 export interface CreatePackageSessionDto {
   patientId?: string;
   medicoId: string;
+  warehouseId?: string;
   packageId: string;
   cantidadSesiones: number;
   descuentoPorcentaje: number;

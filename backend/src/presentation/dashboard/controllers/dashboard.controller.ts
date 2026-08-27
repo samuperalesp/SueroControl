@@ -1,4 +1,4 @@
-import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { DashboardService } from '../../../application/dashboard/services/dashboard.service';
 
 @Controller('dashboard')
@@ -7,7 +7,7 @@ export class DashboardController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getSummary() {
-    return this.dashboardService.getSummary();
+  async getSummary(@Query('warehouseId') warehouseId?: string) {
+    return this.dashboardService.getSummary(warehouseId);
   }
 }

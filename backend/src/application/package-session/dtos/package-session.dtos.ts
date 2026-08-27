@@ -10,6 +10,10 @@ export class CreatePackageSessionDto {
   medicoId: string;
 
   @IsString()
+  @IsOptional()
+  warehouseId?: string;
+
+  @IsString()
   packageId: string;
 
   @IsNumber()

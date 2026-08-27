@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useWarehouse } from '../context/WarehouseContext';
 
 const links = [
   { to: '/', label: 'Dashboard' },
@@ -8,10 +9,12 @@ const links = [
   { to: '/ventas', label: 'Ventas' },
   { to: '/paquetes', label: 'Paquetes' },
   { to: '/terceros', label: 'Terceros' },
+  { to: '/almacenes', label: 'Almacenes' },
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
+  const { warehouses, selectedWarehouseId, selectWarehouse } = useWarehouse();
   const navigate = useNavigate();
 
   function handleLogout() {
@@ -57,9 +60,23 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <span>{user.nombres} {user.apellidos} · <span className="text-blue-600 font-medium">{user.rol === 'ADMINISTRADOR' ? 'Administrador' : 'Operador'}</span></span>
             )}
           </p>
-          <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-700 font-medium cursor-pointer">
-            Cerrar Sesión
-          </button>
+          <div className="flex items-center gap-3">
+            {warehouses.length > 0 && (
+              <select
+                value={selectedWarehouseId ?? ''}
+                onChange={e => selectWarehouse(e.target.value)}
+                className="border border-gray-300 rounded-lg px-2 py-1 text-sm text-gray-700 outline-none focus:ring-2 focus:ring-blue-400"
+                title="Almacén"
+              >
+                {warehouses.map(w => (
+                  <option key={w.id} value={w.id}>{w.nombre}</option>
+                ))}
+              </select>
+            )}
+            <button onClick={handleLogout} className="text-sm text-red-600 hover:text-red-700 font-medium cursor-pointer">
+              Cerrar Sesión
+            </button>
+          </div>
         </header>
         <main className="flex-1 p-6 overflow-auto">
           {children}

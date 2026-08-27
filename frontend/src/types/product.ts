@@ -21,6 +21,7 @@ export interface CreateProductDto {
   stockActual: number;
   stockMinimo: number;
   activo: boolean;
+  warehouseId?: string;
 }
 
 export type UpdateProductDto = Partial<CreateProductDto>;

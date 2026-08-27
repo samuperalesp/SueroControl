@@ -35,6 +35,10 @@ export class CreateProductDto {
 
   @IsBoolean()
   activo: boolean;
+
+  @IsString()
+  @IsOptional()
+  warehouseId?: string;
 }
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {

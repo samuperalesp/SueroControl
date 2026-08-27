@@ -7,6 +7,10 @@ import { INVENTORY_MOVEMENT_REPOSITORY } from '../../../domain/inventory-movemen
 import type { IInventoryMovementRepository } from '../../../domain/inventory-movement/interfaces/inventory-movement.interface';
 import { TERCERO_REPOSITORY } from '../../../domain/tercero/interfaces/tercero.interface';
 import type { ITerceroRepository } from '../../../domain/tercero/interfaces/tercero.interface';
+import { WAREHOUSE_REPOSITORY } from '../../../domain/warehouse/interfaces/warehouse.interface';
+import type { IWarehouseRepository } from '../../../domain/warehouse/interfaces/warehouse.interface';
+import { WAREHOUSE_STOCK_REPOSITORY } from '../../../domain/warehouse-stock/interfaces/warehouse-stock.interface';
+import type { IWarehouseStockRepository } from '../../../domain/warehouse-stock/interfaces/warehouse-stock.interface';
 import { Purchase } from '../../../domain/purchase/entities/purchase.entity';
 import { CreatePurchaseDto, UpdatePurchaseDto } from '../dtos/purchase.dtos';
 
@@ -17,10 +21,55 @@ export class PurchaseService {
     @Inject(PRODUCT_REPOSITORY) private readonly productRepository: IProductRepository,
     @Inject(INVENTORY_MOVEMENT_REPOSITORY) private readonly movementRepository: IInventoryMovementRepository,
     @Inject(TERCERO_REPOSITORY) private readonly terceroRepository: ITerceroRepository,
+    @Inject(WAREHOUSE_REPOSITORY) private readonly warehouseRepository: IWarehouseRepository,
+    @Inject(WAREHOUSE_STOCK_REPOSITORY) private readonly warehouseStockRepository: IWarehouseStockRepository,
   ) {}
+
+  private async resolveWarehouseId(warehouseId?: string): Promise<string> {
+    if (warehouseId) {
+      const warehouse = await this.warehouseRepository.findById(warehouseId);
+      if (!warehouse || !warehouse.activo) {
+        throw new BadRequestException('Almacén no encontrado o inactivo');
+      }
+      return warehouse.id;
+    }
+    const principal = await this.warehouseRepository.findPrincipal();
+    if (!principal) {
+      throw new BadRequestException('No existe un almacén principal configurado');
+    }
+    return principal.id;
+  }
+
+  private async isPrincipalWarehouse(warehouseId: string): Promise<boolean> {
+    const principal = await this.warehouseRepository.findPrincipal();
+    return principal?.id === warehouseId;
+  }
+
+  private async applyEntry(
+    warehouseId: string,
+    isPrincipal: boolean,
+    productId: string,
+    quantity: number,
+  ): Promise<{ stockBefore: number; stockAfter: number }> {
+    let current = await this.warehouseStockRepository.findByWarehouseAndProduct(warehouseId, productId);
+    const stockBefore = current?.stock ?? 0;
+    if (!current) {
+      await this.warehouseStockRepository.upsert(warehouseId, productId, 0, 0);
+    }
+    const updated = await this.warehouseStockRepository.updateStock(warehouseId, productId, quantity);
+    if (!updated) {
+      throw new BadRequestException(`No se pudo actualizar el stock del producto ${productId} en el almacén`);
+    }
+    if (isPrincipal) {
+      await this.productRepository.updateStock(productId, quantity);
+    }
+    return { stockBefore, stockAfter: updated.stock };
+  }
 
   async create(dto: CreatePurchaseDto): Promise<Purchase> {
     const tipo = dto.tipo || 'COMPRA';
+    const warehouseId = await this.resolveWarehouseId(dto.warehouseId);
+    const isPrincipal = await this.isPrincipalWarehouse(warehouseId);
 
     if (dto.terceroId) {
       const tercero = await this.terceroRepository.findById(dto.terceroId);
@@ -47,11 +96,10 @@ export class PurchaseService {
       });
 
       if (tipo === 'COMPRA') {
-        const stockBefore = product.stockActual;
-        const stockAfter = stockBefore + detail.quantity;
-        await this.productRepository.updateStock(detail.productId, detail.quantity);
+        const { stockBefore, stockAfter } = await this.applyEntry(warehouseId, isPrincipal, detail.productId, detail.quantity);
         await this.movementRepository.create({
           productId: detail.productId,
+          warehouseId,
           movementType: 'ENTRY',
           quantity: detail.quantity,
           stockBefore,
@@ -67,6 +115,7 @@ export class PurchaseService {
       pedidoId: dto.pedidoId,
       facturaNumero: dto.facturaNumero,
       terceroId: dto.terceroId,
+      warehouseId,
       total,
       fechaCompra: dto.fechaCompra ? new Date(dto.fechaCompra + 'T00:00:00') : new Date(),
       details: detailEntries,
@@ -74,26 +123,26 @@ export class PurchaseService {
 
     if (tipo === 'COMPRA') {
       for (const detail of dto.details) {
-        const product = await this.productRepository.findById(detail.productId);
-        if (product) {
-          await this.movementRepository.create({
-            productId: detail.productId,
-            movementType: 'ENTRY',
-            quantity: detail.quantity,
-            stockBefore: product.stockActual - detail.quantity,
-            stockAfter: product.stockActual,
-            referenceType: 'PURCHASE',
-            referenceId: purchase.id,
-          });
-        }
+        const current = await this.warehouseStockRepository.findByWarehouseAndProduct(warehouseId, detail.productId);
+        const stockAfter = current?.stock ?? 0;
+        await this.movementRepository.create({
+          productId: detail.productId,
+          warehouseId,
+          movementType: 'ENTRY',
+          quantity: detail.quantity,
+          stockBefore: stockAfter - detail.quantity,
+          stockAfter,
+          referenceType: 'PURCHASE',
+          referenceId: purchase.id,
+        });
       }
     }
 
     return purchase;
   }
 
-  async findAll(): Promise<Purchase[]> {
-    return this.purchaseRepository.findAll();
+  async findAll(warehouseId?: string): Promise<Purchase[]> {
+    return this.purchaseRepository.findAll(warehouseId);
   }
 
   async findById(id: string): Promise<Purchase> {
@@ -116,6 +165,11 @@ export class PurchaseService {
       }
     }
 
+    let warehouseId: string | undefined;
+    if (dto.warehouseId !== undefined) {
+      warehouseId = await this.resolveWarehouseId(dto.warehouseId);
+    }
+
     let details = pedido.details?.map(d => ({ productId: d.productId, quantity: d.quantity, unitCost: d.unitCost, subTotal: d.subTotal })) || [];
 
     if (dto.details) {
@@ -129,12 +183,13 @@ export class PurchaseService {
         total += subTotal;
         details.push({ productId: detail.productId, quantity: detail.quantity, unitCost: detail.unitCost, subTotal });
       }
-      const updated = await this.purchaseRepository.update(id, { terceroId: dto.terceroId, fechaCompra: dto.fechaCompra ? new Date(dto.fechaCompra + 'T00:00:00') : undefined, total, details });
+      const updated = await this.purchaseRepository.update(id, { terceroId: dto.terceroId, warehouseId, fechaCompra: dto.fechaCompra ? new Date(dto.fechaCompra + 'T00:00:00') : undefined, total, details });
       if (!updated) throw new NotFoundException('Error al actualizar pedido');
       return updated;
     }
 
     const updateData: any = { terceroId: dto.terceroId };
+    if (warehouseId !== undefined) updateData.warehouseId = warehouseId;
     if (dto.fechaCompra !== undefined) updateData.fechaCompra = new Date(dto.fechaCompra + 'T00:00:00');
     const updated = await this.purchaseRepository.update(id, updateData);
     if (!updated) throw new NotFoundException('Error al actualizar pedido');
@@ -150,17 +205,18 @@ export class PurchaseService {
       throw new BadRequestException('Purchase order has no details');
     }
 
+    const warehouseId = await this.resolveWarehouseId(pedido.warehouseId);
+    const isPrincipal = await this.isPrincipalWarehouse(warehouseId);
+
     for (const detail of pedido.details) {
       const product = await this.productRepository.findById(detail.productId);
       if (!product) throw new NotFoundException(`Product ${detail.productId} not found`);
 
-      const stockBefore = product.stockActual;
-      const stockAfter = stockBefore + detail.quantity;
-
-      await this.productRepository.updateStock(detail.productId, detail.quantity);
+      const { stockBefore, stockAfter } = await this.applyEntry(warehouseId, isPrincipal, detail.productId, detail.quantity);
 
       await this.movementRepository.create({
         productId: detail.productId,
+        warehouseId,
         movementType: 'ENTRY',
         quantity: detail.quantity,
         stockBefore,

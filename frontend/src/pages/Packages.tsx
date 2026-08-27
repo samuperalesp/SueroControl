@@ -5,6 +5,7 @@ import { fetchTerceros } from '../api/terceroApi';
 import type { Package, CreatePackageDto } from '../types/package';
 import type { Product } from '../types/product';
 import type { Tercero } from '../types/tercero';
+import { useWarehouse } from '../context/WarehouseContext';
 
 interface DetailLine {
   productId: string;
@@ -17,6 +18,7 @@ interface OperatingCostLine {
 }
 
 export default function Packages() {
+  const { selectedWarehouseId } = useWarehouse();
   const [packages, setPackages] = useState<Package[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [terceros, setTerceros] = useState<Tercero[]>([]);
@@ -74,7 +76,7 @@ export default function Packages() {
     try {
       const [packagesData, productsData, tercerosData] = await Promise.all([
         fetchPackages(),
-        fetchProducts(),
+        fetchProducts(selectedWarehouseId ?? undefined),
         fetchTerceros(),
       ]);
       setPackages(packagesData);
@@ -85,7 +87,7 @@ export default function Packages() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedWarehouseId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -229,7 +231,7 @@ export default function Packages() {
     }
     setSellSaving(true);
     try {
-      const result = await sellPackage(sellingPackage.id, selectedClienteId || undefined, selectedMedicoIdPkg);
+      const result = await sellPackage(sellingPackage.id, selectedClienteId || undefined, selectedMedicoIdPkg, selectedWarehouseId ?? undefined);
       setSellResult(result);
     } catch (e: any) { setErrors({ sell: e.message }); }
     finally { setSellSaving(false); }

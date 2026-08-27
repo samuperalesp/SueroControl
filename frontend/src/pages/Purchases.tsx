@@ -6,10 +6,12 @@ import { fetchPurchases, createPurchase, updatePurchase, convertPedidoToCompra }
 import { fetchProducts } from '../api/productApi';
 import { fetchTerceros } from '../api/terceroApi';
 import PurchaseModal from '../components/PurchaseModal';
+import { useWarehouse } from '../context/WarehouseContext';
 
 type Tab = 'facturas' | 'pedidos';
 
 export default function Purchases() {
+  const { selectedWarehouseId } = useWarehouse();
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [terceros, setTerceros] = useState<Tercero[]>([]);
@@ -23,8 +25,8 @@ export default function Purchases() {
     setLoading(true);
     try {
       const [purchasesData, productsData, tercerosData] = await Promise.all([
-        fetchPurchases(),
-        fetchProducts(),
+        fetchPurchases(selectedWarehouseId ?? undefined),
+        fetchProducts(selectedWarehouseId ?? undefined),
         fetchTerceros(),
       ]);
       setPurchases(purchasesData);
@@ -35,7 +37,7 @@ export default function Purchases() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedWarehouseId]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -63,16 +65,17 @@ export default function Purchases() {
 
   async function handleSave(data: { facturaNumero?: string; terceroId?: string; fechaCompra?: string; details: { productId: string; quantity: number; unitCost: number }[] }) {
     if (editingPurchase) {
-      const dto: { terceroId?: string; fechaCompra?: string; details?: { productId: string; quantity: number; unitCost: number }[] } = {};
+      const dto: { terceroId?: string; warehouseId?: string; fechaCompra?: string; details?: { productId: string; quantity: number; unitCost: number }[] } = {};
       if (data.terceroId !== editingPurchase.terceroId) dto.terceroId = data.terceroId;
       if (data.fechaCompra) dto.fechaCompra = data.fechaCompra;
       const hasDetailChanges = JSON.stringify(data.details) !== JSON.stringify(editingPurchase.details?.map(d => ({ productId: d.productId, quantity: d.quantity, unitCost: d.unitCost })));
       if (hasDetailChanges) dto.details = data.details;
+      if (selectedWarehouseId) dto.warehouseId = selectedWarehouseId;
       if (Object.keys(dto).length > 0) {
         await updatePurchase(editingPurchase.id, dto);
       }
     } else {
-      await createPurchase({ tipo: modalTipo, facturaNumero: data.facturaNumero, terceroId: data.terceroId, fechaCompra: data.fechaCompra, details: data.details });
+      await createPurchase({ tipo: modalTipo, facturaNumero: data.facturaNumero, terceroId: data.terceroId, warehouseId: selectedWarehouseId ?? undefined, fechaCompra: data.fechaCompra, details: data.details });
     }
     setEditingPurchase(null);
     setShowModal(false);

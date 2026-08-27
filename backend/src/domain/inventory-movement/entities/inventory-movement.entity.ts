@@ -1,6 +1,7 @@
 export class InventoryMovement {
   id: string;
   productId: string;
+  warehouseId?: string;
   movementType: string;
   quantity: number;
   stockBefore: number;

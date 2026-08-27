@@ -27,6 +27,10 @@ export class CreateSaleDto {
   @IsString()
   medicoId: string;
 
+  @IsString()
+  @IsOptional()
+  warehouseId?: string;
+
   @IsOptional()
   @IsDateString()
   fechaVenta?: string;
@@ -78,6 +82,10 @@ export class SaleSearchDto {
   @IsOptional()
   @IsString()
   terceroId?: string;
+
+  @IsOptional()
+  @IsString()
+  warehouseId?: string;
 
   @IsOptional()
   @IsDateString()

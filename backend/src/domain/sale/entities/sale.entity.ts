@@ -5,6 +5,7 @@ export class Sale {
   consecutivo: number;
   terceroId?: string;
   medicoId?: string;
+  warehouseId?: string;
   total: number;
   fechaVenta?: Date;
   costoTotal?: number;

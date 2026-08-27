@@ -3,8 +3,10 @@ import { ProductController } from './presentation/product/controllers/product.co
 import { ProductService } from './application/product/services/product.service';
 import { ProductPrismaRepository } from './infrastructure/product/repositories/product.prisma.repository';
 import { PRODUCT_REPOSITORY } from './domain/product/interfaces/product.interface';
+import { WarehouseModule } from './warehouse.module';
 
 @Module({
+  imports: [WarehouseModule],
   controllers: [ProductController],
   providers: [
     ProductService,

@@ -12,8 +12,10 @@ import { SALE_REPOSITORY } from './domain/sale/interfaces/sale.interface';
 import { SalePrismaRepository } from './infrastructure/sale/repositories/sale.prisma.repository';
 import { TERCERO_REPOSITORY } from './domain/tercero/interfaces/tercero.interface';
 import { TerceroPrismaRepository } from './infrastructure/tercero/repositories/tercero.prisma.repository';
+import { WarehouseModule } from './warehouse.module';
 
 @Module({
+  imports: [WarehouseModule],
   controllers: [PackageController],
   providers: [
     PackageService,

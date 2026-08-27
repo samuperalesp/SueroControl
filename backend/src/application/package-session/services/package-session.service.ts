@@ -11,6 +11,10 @@ import { INVENTORY_MOVEMENT_REPOSITORY } from '../../../domain/inventory-movemen
 import type { IInventoryMovementRepository } from '../../../domain/inventory-movement/interfaces/inventory-movement.interface';
 import { TERCERO_REPOSITORY } from '../../../domain/tercero/interfaces/tercero.interface';
 import type { ITerceroRepository } from '../../../domain/tercero/interfaces/tercero.interface';
+import { WAREHOUSE_REPOSITORY } from '../../../domain/warehouse/interfaces/warehouse.interface';
+import type { IWarehouseRepository } from '../../../domain/warehouse/interfaces/warehouse.interface';
+import { WAREHOUSE_STOCK_REPOSITORY } from '../../../domain/warehouse-stock/interfaces/warehouse-stock.interface';
+import type { IWarehouseStockRepository } from '../../../domain/warehouse-stock/interfaces/warehouse-stock.interface';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { CreatePackageSessionDto, ApplySessionDto } from '../dtos/package-session.dtos';
 
@@ -24,8 +28,56 @@ export class PackageSessionService {
     @Inject(PRODUCT_REPOSITORY) private readonly productRepository: IProductRepository,
     @Inject(INVENTORY_MOVEMENT_REPOSITORY) private readonly movementRepository: IInventoryMovementRepository,
     @Inject(TERCERO_REPOSITORY) private readonly terceroRepository: ITerceroRepository,
+    @Inject(WAREHOUSE_REPOSITORY) private readonly warehouseRepository: IWarehouseRepository,
+    @Inject(WAREHOUSE_STOCK_REPOSITORY) private readonly warehouseStockRepository: IWarehouseStockRepository,
     private readonly prisma: PrismaService,
   ) {}
+
+  private async resolveWarehouseId(warehouseId?: string): Promise<string> {
+    if (warehouseId) {
+      const warehouse = await this.warehouseRepository.findById(warehouseId);
+      if (!warehouse || !warehouse.activo) {
+        throw new BadRequestException('Almacén no encontrado o inactivo');
+      }
+      return warehouse.id;
+    }
+    const principal = await this.warehouseRepository.findPrincipal();
+    if (!principal) {
+      throw new BadRequestException('No existe un almacén principal configurado');
+    }
+    return principal.id;
+  }
+
+  private async isPrincipalWarehouse(warehouseId: string): Promise<boolean> {
+    const principal = await this.warehouseRepository.findPrincipal();
+    return principal?.id === warehouseId;
+  }
+
+  private async getAvailableStock(warehouseId: string, productId: string): Promise<number> {
+    const current = await this.warehouseStockRepository.findByWarehouseAndProduct(warehouseId, productId);
+    return current?.stock ?? 0;
+  }
+
+  private async applyExit(
+    warehouseId: string,
+    isPrincipal: boolean,
+    productId: string,
+    quantity: number,
+  ): Promise<{ stockBefore: number; stockAfter: number }> {
+    const current = await this.warehouseStockRepository.findByWarehouseAndProduct(warehouseId, productId);
+    const stockBefore = current?.stock ?? 0;
+    if (stockBefore < quantity) {
+      throw new BadRequestException('Stock insuficiente en el almacén');
+    }
+    const updated = await this.warehouseStockRepository.updateStock(warehouseId, productId, -quantity);
+    if (!updated) {
+      throw new BadRequestException('No se pudo actualizar el stock del almacén');
+    }
+    if (isPrincipal) {
+      await this.productRepository.updateStock(productId, -quantity);
+    }
+    return { stockBefore, stockAfter: updated.stock };
+  }
 
   async create(dto: CreatePackageSessionDto) {
     if (dto.patientId) {
@@ -57,10 +109,13 @@ export class PackageSessionService {
     const maxCons = await this.saleRepository.findMaxConsecutivo();
     const consecutivo = maxCons + 1;
 
+    const warehouseId = await this.resolveWarehouseId(dto.warehouseId);
+
     const sale = await this.saleRepository.createWithDetails({
       consecutivo,
       terceroId: dto.patientId,
       medicoId: dto.medicoId,
+      warehouseId,
       total: totalPagado,
       details: [{
         packageId: dto.packageId,
@@ -109,6 +164,10 @@ export class PackageSessionService {
       throw new BadRequestException('No hay sesiones pendientes por aplicar');
     }
 
+    const sale = await this.saleRepository.findById(ps.saleId);
+    const warehouseId = await this.resolveWarehouseId(sale?.warehouseId);
+    const isPrincipal = await this.isPrincipalWarehouse(warehouseId);
+
     const pkg = await this.packageRepository.findById(ps.packageId);
     if (!pkg) throw new NotFoundException('Paquete no encontrado');
     if (!pkg.details || pkg.details.length === 0) {
@@ -120,10 +179,11 @@ export class PackageSessionService {
       const product = await this.productRepository.findById(comp.productId);
       if (!product) throw new NotFoundException(`Producto ${comp.productId} no encontrado`);
       const requiredQty = comp.quantity;
-      if (product.stockActual < requiredQty) {
+      const available = await this.getAvailableStock(warehouseId, comp.productId);
+      if (available < requiredQty) {
         productsOutOfStock.push({
           nombre: product.nombre,
-          disponible: product.stockActual,
+          disponible: available,
           requerido: requiredQty,
         });
       }
@@ -143,7 +203,7 @@ export class PackageSessionService {
       const product = await this.productRepository.findById(comp.productId);
       if (product) {
         costoMedicamentos += product.costoCompra * comp.quantity;
-        await this.productRepository.updateStock(comp.productId, -comp.quantity);
+        await this.applyExit(warehouseId, isPrincipal, comp.productId, comp.quantity);
       }
     }
 
@@ -169,18 +229,17 @@ export class PackageSessionService {
     });
 
     for (const comp of pkg.details) {
-      const product = await this.productRepository.findById(comp.productId);
-      if (product) {
-        await this.movementRepository.create({
-          productId: comp.productId,
-          movementType: 'EXIT',
-          quantity: comp.quantity,
-          stockBefore: product.stockActual + comp.quantity,
-          stockAfter: product.stockActual,
-          referenceType: 'SESSION_APPLICATION',
-          referenceId: salePackage.id,
-        });
-      }
+      const stockAfter = await this.getAvailableStock(warehouseId, comp.productId);
+      await this.movementRepository.create({
+        productId: comp.productId,
+        warehouseId,
+        movementType: 'EXIT',
+        quantity: comp.quantity,
+        stockBefore: stockAfter + comp.quantity,
+        stockAfter,
+        referenceType: 'SESSION_APPLICATION',
+        referenceId: salePackage.id,
+      });
     }
 
     const nuevasConsumidas = ps.sesionesConsumidas + 1;

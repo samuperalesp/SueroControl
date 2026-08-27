@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchDashboard } from '../api/dashboardApi';
 import type { DashboardSummary } from '../api/dashboardApi';
+import { useWarehouse } from '../context/WarehouseContext';
 
 function formatCOP(value: number): string {
   return new Intl.NumberFormat('es-CO', {
@@ -12,24 +13,33 @@ function formatCOP(value: number): string {
 }
 
 export default function Dashboard() {
+  const { selectedWarehouseId, selectedWarehouse } = useWarehouse();
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
+      setLoading(true);
+      setData(null);
       try {
-        const result = await fetchDashboard();
-        setData(result);
+        const result = await fetchDashboard(selectedWarehouseId ?? undefined);
+        if (!cancelled) setData(result);
       } catch (e) {
-        setError('Error al cargar datos del dashboard');
-        console.error(e);
+        if (!cancelled) {
+          setError('Error al cargar datos del dashboard');
+          console.error(e);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     load();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedWarehouseId]);
 
   if (loading) {
     return (
@@ -76,7 +86,9 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Panel de Control</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        Panel de Control{selectedWarehouse ? ` — ${selectedWarehouse.nombre}` : ''}
+      </h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {cards.map((card) => (

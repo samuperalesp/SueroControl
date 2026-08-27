@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Sale, ComprobanteData, PackageSession, SessionApplication, CreatePackageSessionDto } from '../types/sale';
+import type { Sale, ComprobanteData, PackageSession, UpdateSaleDto } from '../types/sale';
 import type { Product } from '../types/product';
 import type { Tercero } from '../types/tercero';
 import type { Package } from '../types/package';
-import { fetchSales, createSale, updateSale, cancelSale, fetchComprobante, fetchPackageSessions, createPackageSession, fetchPackageSession, applyPackageSession, cancelPackageSession } from '../api/saleApi';
+import { fetchSales, createSale, updateSale, cancelSale, fetchComprobante, fetchPackageSessions, createPackageSession, applyPackageSession, cancelPackageSession } from '../api/saleApi';
 import { fetchProducts } from '../api/productApi';
 import { fetchPackages } from '../api/packageApi';
 import { fetchTerceros } from '../api/terceroApi';
+import { useWarehouse } from '../context/WarehouseContext';
 
 type LineItemType = 'PRODUCT' | 'PACKAGE' | 'PACKAGE_SESSION';
 
@@ -23,6 +24,7 @@ interface LineItem {
 type Tab = 'ventas' | 'paquetes-sesiones' | 'aplicaciones';
 
 export default function Sales() {
+  const { selectedWarehouseId } = useWarehouse();
   const [sales, setSales] = useState<Sale[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
@@ -150,9 +152,10 @@ export default function Sales() {
       if (cons) params.consecutivo = parseInt(cons);
       if (from) params.fechaDesde = from;
       if (to) params.fechaHasta = to;
+      if (selectedWarehouseId) params.warehouseId = selectedWarehouseId;
       const [salesData, productsData, packagesData, tercerosData] = await Promise.all([
         fetchSales(Object.keys(params).length ? params : undefined),
-        fetchProducts(),
+        fetchProducts(selectedWarehouseId ?? undefined),
         fetchPackages(),
         fetchTerceros(),
       ]);
@@ -176,7 +179,7 @@ export default function Sales() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedWarehouseId]);
 
   const loadPs = useCallback(async () => {
     setPsLoading(true);
@@ -273,7 +276,7 @@ export default function Sales() {
     if (!validate()) return;
     setSaving(true);
     try {
-      await createSale({ terceroId: selectedClienteId || undefined, medicoId: selectedMedicoId, fechaVenta, details: items });
+      await createSale({ terceroId: selectedClienteId || undefined, medicoId: selectedMedicoId, warehouseId: selectedWarehouseId ?? undefined, fechaVenta, details: items });
       resetCreateModal();
       load();
     } catch (e: any) { setErrors({ general: e.message }); }
@@ -571,6 +574,7 @@ export default function Sales() {
       await createPackageSession({
         patientId: psSelectedPatientId || undefined,
         medicoId: psSelectedMedicoId,
+        warehouseId: selectedWarehouseId ?? undefined,
         packageId: psSelectedPackageId,
         cantidadSesiones: psSessions,
         descuentoPorcentaje: psDiscount,

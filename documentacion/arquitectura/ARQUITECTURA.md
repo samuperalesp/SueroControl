@@ -26,7 +26,7 @@
 SueroControl/
 ├── backend/                     # Proyecto NestJS
 │   ├── prisma/
-│   │   ├── schema.prisma        # Modelos de datos (13 modelos)
+│   │   ├── schema.prisma        # Modelos de datos (17 modelos)
 │   │   ├── migrations/          # Migraciones generadas
 │   │   │   └── 0001_init/
 │   │   │       └── migration.sql
@@ -115,7 +115,7 @@ SueroControl/
 └── .gitignore
 ```
 
-## Modelos de Datos (Prisma) — 13 modelos
+## Modelos de Datos (Prisma) — 17 modelos
 
 ### User
 | Campo | Tipo | Descripción |
@@ -148,6 +148,33 @@ SueroControl/
 | createdAt | DateTime | Fecha de creación |
 | updatedAt | DateTime | Última actualización |
 
+### Warehouse
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | UUID | ID único |
+| nombre | String | Nombre configurable del almacén |
+| esPrincipal | Boolean (default false) | Indica el almacén principal (único, garantizado a nivel de BD) |
+| activo | Boolean | Estado activo/inactivo |
+| createdAt | DateTime | Fecha de creación |
+| updatedAt | DateTime | Última actualización |
+
+- Un producto existe una sola vez; su existencia por almacén se maneja en `WarehouseStock`.
+- `Purchase`, `Sale` e `InventoryMovement` se asocian al almacén vía `warehouseId`.
+
+### WarehouseStock
+| Campo | Tipo | Descripción |
+|-------|------|-------------|
+| id | UUID | ID único |
+| warehouseId | UUID | Almacén relacionado |
+| productId | UUID | Producto relacionado |
+| stock | Int (default 0) | Existencia real por (almacén, producto) |
+| stockMinimo | Int (default 0) | Stock mínimo por (almacén, producto) |
+| createdAt | DateTime | Fecha de creación |
+| updatedAt | DateTime | Última actualización |
+
+- `@@unique([warehouseId, productId])`: una sola fila de stock por producto y almacén.
+- Fuente de verdad del inventario multi-almacén (reemplaza el stock global de `Product`).
+
 ### Tercero
 | Campo | Tipo | Descripción |
 |-------|------|-------------|
@@ -171,6 +198,7 @@ SueroControl/
 ### Purchase / PurchaseDetail
 - Compra con múltiples detalles (producto, cantidad, costo unitario).
 - Asociada a un Tercero de tipo PROVEEDOR o CLIENTE_PROVEEDOR.
+- `warehouseId`: almacén al que entra la mercancía (NULLABLE en esta fase; se endurecerá a NOT NULL tras el backfill).
 - Soporta pedidos (PEDIDO) y facturas de compra (COMPRA) mediante campo `tipo`.
 - Conversión de PEDIDO a COMPRA vía `PUT /purchases/:id/convert` (incrementa stock y registra movimientos).
 - `facturaNumero`: número de factura del proveedor (opcional).
@@ -181,6 +209,7 @@ SueroControl/
 - Venta con múltiples detalles (producto, cantidad, precio unitario).
 - Asociada a un Tercero de tipo CLIENTE o CLIENTE_PROVEEDOR (cliente).
 - Asociada obligatoriamente a un Tercero de tipo MEDICO (médico responsable).
+- `warehouseId`: almacén desde el que sale la mercancía (NULLABLE en esta fase; se endurecerá a NOT NULL tras el backfill).
 - `consecutivo`: número de comprobante interno auto-generado.
 - `medicoId`: ID del médico responsable de la venta.
 - Soporta venta directa y venta por paquete (campo packageId opcional).
@@ -212,6 +241,7 @@ SueroControl/
 |-------|------|-------------|
 | id | UUID | ID único |
 | productId | UUID | Producto relacionado |
+| warehouseId | UUID | Almacén relacionado (NULLABLE en esta fase) |
 | movementType | String | ENTRY o EXIT |
 | quantity | Int | Cantidad movida |
 | stockBefore | Int | Stock antes del movimiento |

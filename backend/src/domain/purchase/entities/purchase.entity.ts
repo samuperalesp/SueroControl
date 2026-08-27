@@ -6,6 +6,7 @@ export class Purchase {
   pedidoId?: string;
   facturaNumero?: string;
   terceroId?: string;
+  warehouseId?: string;
   total: number;
   fechaCompra?: Date;
   createdAt: Date;

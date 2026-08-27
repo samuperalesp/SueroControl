@@ -22,6 +22,7 @@ export interface SaleHistoryData {
 export interface SaleSearchParams {
   consecutivo?: number;
   terceroId?: string;
+  warehouseId?: string;
   fechaDesde?: string;
   fechaHasta?: string;
 }
@@ -40,6 +41,7 @@ export interface ISaleRepository {
     consecutivo: number;
     terceroId?: string;
     medicoId?: string;
+    warehouseId: string;
     total: number;
     fechaVenta?: Date;
     costoTotal?: number;

@@ -9,6 +9,10 @@ import { INVENTORY_MOVEMENT_REPOSITORY } from '../../../domain/inventory-movemen
 import type { IInventoryMovementRepository } from '../../../domain/inventory-movement/interfaces/inventory-movement.interface';
 import { TERCERO_REPOSITORY } from '../../../domain/tercero/interfaces/tercero.interface';
 import type { ITerceroRepository } from '../../../domain/tercero/interfaces/tercero.interface';
+import { WAREHOUSE_REPOSITORY } from '../../../domain/warehouse/interfaces/warehouse.interface';
+import type { IWarehouseRepository } from '../../../domain/warehouse/interfaces/warehouse.interface';
+import { WAREHOUSE_STOCK_REPOSITORY } from '../../../domain/warehouse-stock/interfaces/warehouse-stock.interface';
+import type { IWarehouseStockRepository } from '../../../domain/warehouse-stock/interfaces/warehouse-stock.interface';
 import { Sale } from '../../../domain/sale/entities/sale.entity';
 import { CreateSaleDto, UpdateSaleDto, CancelSaleDto } from '../dtos/sale.dtos';
 
@@ -24,9 +28,81 @@ export class SaleService {
     @Inject(SALE_PACKAGE_REPOSITORY) private readonly salePackageRepository: ISalePackageRepository,
     @Inject(INVENTORY_MOVEMENT_REPOSITORY) private readonly movementRepository: IInventoryMovementRepository,
     @Inject(TERCERO_REPOSITORY) private readonly terceroRepository: ITerceroRepository,
+    @Inject(WAREHOUSE_REPOSITORY) private readonly warehouseRepository: IWarehouseRepository,
+    @Inject(WAREHOUSE_STOCK_REPOSITORY) private readonly warehouseStockRepository: IWarehouseStockRepository,
   ) {}
 
+  private async resolveWarehouseId(warehouseId?: string): Promise<string> {
+    if (warehouseId) {
+      const warehouse = await this.warehouseRepository.findById(warehouseId);
+      if (!warehouse || !warehouse.activo) {
+        throw new BadRequestException('Almacén no encontrado o inactivo');
+      }
+      return warehouse.id;
+    }
+    const principal = await this.warehouseRepository.findPrincipal();
+    if (!principal) {
+      throw new BadRequestException('No existe un almacén principal configurado');
+    }
+    return principal.id;
+  }
+
+  private async isPrincipalWarehouse(warehouseId: string): Promise<boolean> {
+    const principal = await this.warehouseRepository.findPrincipal();
+    return principal?.id === warehouseId;
+  }
+
+  private async getAvailableStock(warehouseId: string, productId: string): Promise<number> {
+    const current = await this.warehouseStockRepository.findByWarehouseAndProduct(warehouseId, productId);
+    return current?.stock ?? 0;
+  }
+
+  private async applyExit(
+    warehouseId: string,
+    isPrincipal: boolean,
+    productId: string,
+    quantity: number,
+  ): Promise<{ stockBefore: number; stockAfter: number }> {
+    const current = await this.warehouseStockRepository.findByWarehouseAndProduct(warehouseId, productId);
+    const stockBefore = current?.stock ?? 0;
+    if (stockBefore < quantity) {
+      throw new BadRequestException('Stock insuficiente en el almacén');
+    }
+    const updated = await this.warehouseStockRepository.updateStock(warehouseId, productId, -quantity);
+    if (!updated) {
+      throw new BadRequestException('No se pudo actualizar el stock del almacén');
+    }
+    if (isPrincipal) {
+      await this.productRepository.updateStock(productId, -quantity);
+    }
+    return { stockBefore, stockAfter: updated.stock };
+  }
+
+  private async applyRestore(
+    warehouseId: string,
+    isPrincipal: boolean,
+    productId: string,
+    quantity: number,
+  ): Promise<{ stockBefore: number; stockAfter: number }> {
+    let current = await this.warehouseStockRepository.findByWarehouseAndProduct(warehouseId, productId);
+    const stockBefore = current?.stock ?? 0;
+    if (!current) {
+      await this.warehouseStockRepository.upsert(warehouseId, productId, 0, 0);
+    }
+    const updated = await this.warehouseStockRepository.updateStock(warehouseId, productId, quantity);
+    if (!updated) {
+      throw new BadRequestException('No se pudo actualizar el stock del almacén');
+    }
+    if (isPrincipal) {
+      await this.productRepository.updateStock(productId, quantity);
+    }
+    return { stockBefore, stockAfter: updated.stock };
+  }
+
   async create(dto: CreateSaleDto): Promise<Sale> {
+    const warehouseId = await this.resolveWarehouseId(dto.warehouseId);
+    const isPrincipal = await this.isPrincipalWarehouse(warehouseId);
+
     if (dto.terceroId) {
       const tercero = await this.terceroRepository.findById(dto.terceroId);
       if (!tercero) throw new NotFoundException('Cliente no encontrado');
@@ -71,9 +147,10 @@ export class SaleService {
           const product = await this.productRepository.findById(comp.productId);
           if (!product) throw new NotFoundException(`Producto ${comp.productId} no encontrado`);
           const requiredQty = comp.quantity * packageQty;
-          if (product.stockActual < requiredQty) {
+          const available = await this.getAvailableStock(warehouseId, comp.productId);
+          if (available < requiredQty) {
             throw new BadRequestException(
-              `Stock insuficiente para ${product.nombre}. Disponible: ${product.stockActual}, requerido: ${requiredQty}`
+              `Stock insuficiente para ${product.nombre}. Disponible: ${available}, requerido: ${requiredQty}`
             );
           }
           costoMedicamentos += product.costoCompra * requiredQty;
@@ -84,7 +161,7 @@ export class SaleService {
         total += subTotal;
 
         for (const comp of pkg.details) {
-          await this.productRepository.updateStock(comp.productId, -(comp.quantity * packageQty));
+          await this.applyExit(warehouseId, isPrincipal, comp.productId, comp.quantity * packageQty);
         }
 
         detailEntries.push({
@@ -110,14 +187,15 @@ export class SaleService {
       } else if (detail.productId) {
         const product = await this.productRepository.findById(detail.productId);
         if (!product) throw new NotFoundException(`Producto ${detail.productId} no encontrado`);
-        if (product.stockActual < detail.quantity) {
-          throw new BadRequestException(`Stock insuficiente para ${product.nombre}. Disponible: ${product.stockActual}, solicitado: ${detail.quantity}`);
+        const available = await this.getAvailableStock(warehouseId, detail.productId);
+        if (available < detail.quantity) {
+          throw new BadRequestException(`Stock insuficiente para ${product.nombre}. Disponible: ${available}, solicitado: ${detail.quantity}`);
         }
 
         const subTotal = detail.quantity * detail.unitPrice;
         total += subTotal;
 
-        await this.productRepository.updateStock(detail.productId, -detail.quantity);
+        await this.applyExit(warehouseId, isPrincipal, detail.productId, detail.quantity);
 
         detailEntries.push({
           productId: detail.productId,
@@ -135,6 +213,7 @@ export class SaleService {
       consecutivo,
       terceroId: dto.terceroId,
       medicoId: dto.medicoId,
+      warehouseId,
       total,
       fechaVenta: dto.fechaVenta ? new Date(dto.fechaVenta + 'T00:00:00') : new Date(),
       details: detailEntries,
@@ -164,34 +243,32 @@ export class SaleService {
         });
 
         for (const comp of spi.packageDetails) {
-          const product = await this.productRepository.findById(comp.productId);
-          if (product) {
-            const movedQty = comp.quantity * spi.packageQty;
-            await this.movementRepository.create({
-              productId: comp.productId,
-              movementType: 'EXIT',
-              quantity: movedQty,
-              stockBefore: product.stockActual + movedQty,
-              stockAfter: product.stockActual,
-              referenceType: 'SALE',
-              referenceId: sale.id,
-            });
-          }
-        }
-
-      } else if (detail.productId) {
-        const product = await this.productRepository.findById(detail.productId);
-        if (product) {
+          const movedQty = comp.quantity * spi.packageQty;
+          const stockAfter = await this.getAvailableStock(warehouseId, comp.productId);
           await this.movementRepository.create({
-            productId: detail.productId,
+            productId: comp.productId,
+            warehouseId,
             movementType: 'EXIT',
-            quantity: detail.quantity,
-            stockBefore: product.stockActual + detail.quantity,
-            stockAfter: product.stockActual,
+            quantity: movedQty,
+            stockBefore: stockAfter + movedQty,
+            stockAfter,
             referenceType: 'SALE',
             referenceId: sale.id,
           });
         }
+
+      } else if (detail.productId) {
+        const stockAfter = await this.getAvailableStock(warehouseId, detail.productId);
+        await this.movementRepository.create({
+          productId: detail.productId,
+          warehouseId,
+          movementType: 'EXIT',
+          quantity: detail.quantity,
+          stockBefore: stockAfter + detail.quantity,
+          stockAfter,
+          referenceType: 'SALE',
+          referenceId: sale.id,
+        });
       }
     }
 
@@ -301,39 +378,38 @@ export class SaleService {
       throw new BadRequestException('La venta ya está anulada');
     }
 
+    const warehouseId = await this.resolveWarehouseId(sale.warehouseId);
+    const isPrincipal = await this.isPrincipalWarehouse(warehouseId);
+
     for (const detail of sale.details || []) {
       if (detail.productId) {
-        await this.productRepository.updateStock(detail.productId, detail.quantity);
-        const product = await this.productRepository.findById(detail.productId);
-        if (product) {
-          await this.movementRepository.create({
-            productId: detail.productId,
-            movementType: 'ENTRY',
-            quantity: detail.quantity,
-            stockBefore: product.stockActual - detail.quantity,
-            stockAfter: product.stockActual,
-            referenceType: 'CANCEL_SALE',
-            referenceId: sale.id,
-          });
-        }
+        const { stockAfter } = await this.applyRestore(warehouseId, isPrincipal, detail.productId, detail.quantity);
+        await this.movementRepository.create({
+          productId: detail.productId,
+          warehouseId,
+          movementType: 'ENTRY',
+          quantity: detail.quantity,
+          stockBefore: stockAfter - detail.quantity,
+          stockAfter,
+          referenceType: 'CANCEL_SALE',
+          referenceId: sale.id,
+        });
       } else if (detail.packageId) {
         const pkg = await this.packageRepository.findById(detail.packageId);
         if (pkg?.details) {
           for (const comp of pkg.details) {
             const restoreQty = comp.quantity * detail.quantity;
-            await this.productRepository.updateStock(comp.productId, restoreQty);
-            const product = await this.productRepository.findById(comp.productId);
-            if (product) {
-              await this.movementRepository.create({
-                productId: comp.productId,
-                movementType: 'ENTRY',
-                quantity: restoreQty,
-                stockBefore: product.stockActual - restoreQty,
-                stockAfter: product.stockActual,
-                referenceType: 'CANCEL_SALE',
-                referenceId: sale.id,
-              });
-            }
+            const { stockAfter } = await this.applyRestore(warehouseId, isPrincipal, comp.productId, restoreQty);
+            await this.movementRepository.create({
+              productId: comp.productId,
+              warehouseId,
+              movementType: 'ENTRY',
+              quantity: restoreQty,
+              stockBefore: stockAfter - restoreQty,
+              stockAfter,
+              referenceType: 'CANCEL_SALE',
+              referenceId: sale.id,
+            });
           }
         }
       }

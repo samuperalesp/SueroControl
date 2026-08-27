@@ -30,12 +30,14 @@ export interface CreatePurchaseDto {
   pedidoId?: string;
   facturaNumero?: string;
   terceroId?: string;
+  warehouseId?: string;
   fechaCompra?: string;
   details: PurchaseDetailDto[];
 }
 
 export interface UpdatePurchaseDto {
   terceroId?: string;
+  warehouseId?: string;
   fechaCompra?: string;
   details?: PurchaseDetailDto[];
 }

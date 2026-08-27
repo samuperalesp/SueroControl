@@ -9,6 +9,7 @@ export class InventoryMovementPrismaRepository implements IInventoryMovementRepo
 
   async create(data: {
     productId: string;
+    warehouseId: string;
     movementType: string;
     quantity: number;
     stockBefore: number;
@@ -16,19 +17,36 @@ export class InventoryMovementPrismaRepository implements IInventoryMovementRepo
     referenceType: string;
     referenceId: string;
   }): Promise<InventoryMovement> {
-    const created = await this.prisma.inventoryMovement.create({ data });
+    const created = await this.prisma.inventoryMovement.create({
+      data: {
+        productId: data.productId,
+        warehouseId: data.warehouseId,
+        movementType: data.movementType,
+        quantity: data.quantity,
+        stockBefore: data.stockBefore,
+        stockAfter: data.stockAfter,
+        referenceType: data.referenceType,
+        referenceId: data.referenceId,
+      },
+    });
     return created as InventoryMovement;
   }
 
-  async findByProductId(productId: string): Promise<InventoryMovement[]> {
+  async findByProductId(productId: string, warehouseId?: string): Promise<InventoryMovement[]> {
     return this.prisma.inventoryMovement.findMany({
-      where: { productId },
+      where: {
+        productId,
+        ...(warehouseId ? { warehouseId } : {}),
+      },
       orderBy: { createdAt: 'desc' },
     }) as Promise<InventoryMovement[]>;
   }
 
-  async findAll(): Promise<InventoryMovement[]> {
+  async findAll(warehouseId?: string): Promise<InventoryMovement[]> {
     return this.prisma.inventoryMovement.findMany({
+      where: {
+        ...(warehouseId ? { warehouseId } : {}),
+      },
       orderBy: { createdAt: 'desc' },
       include: { product: true },
     }) as Promise<InventoryMovement[]>;

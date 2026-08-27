@@ -19,10 +19,11 @@ export class SaleController {
   @HttpCode(HttpStatus.OK)
   @Roles('ADMINISTRADOR', 'OPERADOR')
   async findAll(@Query() query: SaleSearchDto) {
-    if (query.consecutivo || query.terceroId || query.fechaDesde || query.fechaHasta) {
+    if (query.consecutivo || query.terceroId || query.warehouseId || query.fechaDesde || query.fechaHasta) {
       return this.saleService.findAll({
         consecutivo: query.consecutivo,
         terceroId: query.terceroId,
+        warehouseId: query.warehouseId,
         fechaDesde: query.fechaDesde,
         fechaHasta: query.fechaHasta,
       });

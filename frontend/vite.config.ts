@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/products': 'http://localhost:3000',
+      '/warehouses': 'http://localhost:3000',
       '/terceros': 'http://localhost:3000',
       '/purchases': 'http://localhost:3000',
       '/sales': 'http://localhost:3000',

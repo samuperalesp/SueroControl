@@ -3,6 +3,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { ProductModule } from './product.module';
+import { WarehouseModule } from './warehouse.module';
 import { TerceroModule } from './tercero.module';
 import { PurchaseModule } from './purchase.module';
 import { SaleModule } from './sale.module';
@@ -19,6 +20,7 @@ import { PackageSessionModule } from './package-session.module';
     AuthModule,
     UserModule,
     ProductModule,
+    WarehouseModule,
     TerceroModule,
     PurchaseModule,
     SaleModule,

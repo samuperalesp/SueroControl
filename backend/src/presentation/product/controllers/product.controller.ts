@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { ProductService } from '../../../application/product/services/product.service';
 import { CreateProductDto, UpdateProductDto, ProductResponseDto } from '../../../application/product/dtos/product.dtos';
 import { Product } from '../../../domain/product/entities/product.entity';
@@ -16,8 +16,8 @@ export class ProductController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async findAll(): Promise<ProductResponseDto[]> {
-    const products = await this.productService.findAllProducts();
+  async findAll(@Query('warehouseId') warehouseId?: string): Promise<ProductResponseDto[]> {
+    const products = await this.productService.findAllProducts(warehouseId);
     return products.map(p => this.toResponseDto(p));
   }
 

@@ -50,8 +50,8 @@ export class PackageController {
   @HttpCode(HttpStatus.CREATED)
   async sell(
     @Param('id') id: string,
-    @Body() body: { terceroId?: string; medicoId?: string },
+    @Body() body: { terceroId?: string; medicoId?: string; warehouseId?: string },
   ) {
-    return this.packageService.sellPackage(id, body.terceroId, body.medicoId);
+    return this.packageService.sellPackage(id, body.terceroId, body.medicoId, body.warehouseId);
   }
 }

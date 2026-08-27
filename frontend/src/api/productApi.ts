@@ -3,8 +3,9 @@ import { apiFetch } from './helpers';
 
 const BASE = '/products';
 
-export async function fetchProducts(): Promise<Product[]> {
-  const res = await apiFetch(BASE);
+export async function fetchProducts(warehouseId?: string): Promise<Product[]> {
+  const qs = warehouseId ? `?warehouseId=${encodeURIComponent(warehouseId)}` : '';
+  const res = await apiFetch(BASE + qs);
   if (!res.ok) throw new Error('Error al obtener productos');
   return res.json();
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { PurchaseService } from '../../../application/purchase/services/purchase.service';
 import { CreatePurchaseDto, UpdatePurchaseDto } from '../../../application/purchase/dtos/purchase.dtos';
 
@@ -14,8 +14,8 @@ export class PurchaseController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async findAll() {
-    return this.purchaseService.findAll();
+  async findAll(@Query('warehouseId') warehouseId?: string) {
+    return this.purchaseService.findAll(warehouseId);
   }
 
   @Get(':id')

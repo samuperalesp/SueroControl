@@ -14,6 +14,7 @@ export class SalePrismaRepository implements ISaleRepository {
     consecutivo: number;
     terceroId?: string;
     medicoId?: string;
+    warehouseId: string;
     total: number;
     fechaVenta?: Date;
     costoTotal?: number;
@@ -27,6 +28,7 @@ export class SalePrismaRepository implements ISaleRepository {
         consecutivo: data.consecutivo,
         terceroId: data.terceroId,
         medicoId: data.medicoId,
+        warehouseId: data.warehouseId,
         total: data.total,
         fechaVenta: data.fechaVenta ?? new Date(),
         costoTotal: data.costoTotal,
@@ -45,6 +47,7 @@ export class SalePrismaRepository implements ISaleRepository {
     if (params) {
       if (params.consecutivo) where.consecutivo = params.consecutivo;
       if (params.terceroId) where.terceroId = params.terceroId;
+      if (params.warehouseId) where.warehouseId = params.warehouseId;
       if (params.fechaDesde || params.fechaHasta) {
         where.fechaVenta = {};
         if (params.fechaDesde) where.fechaVenta.gte = new Date(params.fechaDesde + 'T00:00:00');
