@@ -810,3 +810,61 @@ Fecha: 27/08/2026 · No se modificó ningún archivo ni la BD.
 - **9.1 Backend**: `getSummary(warehouseId?)` + query param en el controller. validate/generate/build. Verificación solo lectura: agregados globales vs. filtrados por principal deben coincidir.
 - **9.2 Frontend**: `fetchDashboard(warehouseId?)` + `Dashboard.tsx` con contexto y recarga + nombre del almacén en el título.
 - **9.3 Verificación integral**: builds, KPIs globales vs. principal idénticos, confirmar BD intacta, regresión cero con el único almacén.
+
+---
+
+# CORRECCIONES POST-FASE 9 (APLICADAS)
+
+## Corrección 1 — Bucle infinito en Login
+
+- **Causa**: `WarehouseProvider` (Fase 8.2) ejecutaba `fetchWarehouses()` (endpoint protegido) al montar, incluso en `/login` sin token → `apiFetch` en 401 hacía `window.location.href = '/login'` (reload) → bucle.
+- **Solución** (en `frontend/src/context/WarehouseContext.tsx`): condicionar el fetch a `useAuth().isAuthenticated`; si no hay sesión, limpiar `warehouses`, `selectedWarehouseId`, `error` y `loading=false`. `useEffect` depende de `[isAuthenticated]`.
+- **Verificado**: `GET /warehouses` sin token → 401 (ya no se llama desde `/login`); con token → 200 (los almacenes cargan tras autenticarse).
+
+## Corrección 2 — Aislamiento de listados de Compras y Ventas por almacén
+
+- **Causa**: `GET /purchases` y `GET /sales` no filtraban por `warehouseId` (frontend no lo enviaba ni backend lo usaba en `findAll`).
+- **Solución**:
+  - Backend: `PurchaseController.findAll(@Query('warehouseId'))` → service → repo `findAll(warehouseId?)` con `where.warehouseId`. Sale: `warehouseId` en `SaleSearchParams`/`SaleSearchDto`; repo filtra `where.warehouseId`.
+  - Frontend: `fetchPurchases(warehouseId?)` y `SaleSearchParams.warehouseId?`; `Purchases.tsx`/`Sales.tsx` envían `selectedWarehouseId` y recargan al cambiar de almacén.
+- **Verificado**: principal → 46 compras / 106 ventas; secundario → 0; sin param → legacy (todas).
+
+---
+
+# ANÁLISIS Y PLAN — TRASLADO DE INVENTARIO ENTRE ALMACENES (PENDIENTE DE APROBACIÓN)
+
+Fecha: 27/08/2026 · Solo análisis; no implementado.
+
+## Arquitectura reutilizable
+
+- `WarehouseStock`: `findByWarehouseAndProduct`, `updateStock` (atómico, sin negativos), `setStock`/`upsert`.
+- `InventoryMovement`: `create` ya acepta `warehouseId`; campos `movementType`, `stockBefore/After`, `referenceType`, `referenceId`.
+- `PrismaService` (`@Global`) disponible para `$transaction`.
+
+## Mecanismo propuesto (sin schema ni tabla nueva)
+
+- **`InventoryMovement` con `referenceType: 'TRANSFER'`**: dos movimientos por traslado (EXIT del origen + ENTRY del destino) con el mismo `referenceId` (UUID generado).
+- **`schema.prisma` NO requiere cambios** (`WarehouseStock` e `InventoryMovement` ya lo soportan).
+
+## Lógica de traslado (backend, transacción única)
+
+`WarehouseService.transferStock(dto)`:
+1. Validar `origenId ≠ destinoId`, almacenes existentes/activos, `cantidad ≥ 1`, producto existe.
+2. `$transaction(async (tx) => ...)`:
+   - Decremento origen (`stock >= cantidad`, sin negativos) → `tx.warehouseStock.updateMany`.
+   - Incremento/upsert destino → `tx.warehouseStock.upsert`.
+   - Si participa el **principal**: sincronizar espejo `Product.stockActual` (`tx.product.update`).
+   - Crear 2 `InventoryMovement` `TRANSFER` (EXIT origen / ENTRY destino) con `stockBefore/After` reales.
+   - Fallo → rollback completo.
+3. `referenceId` = UUID común.
+
+## Archivos a modificar/crear
+
+- Backend: `warehouse.dtos.ts` (`TransferStockDto`), `warehouse.service.ts` (`transferStock` + PrismaService), `warehouse.controller.ts` (`POST /warehouses/transfer`).
+- Frontend: `types/warehouse.ts` (`TransferStockDto`), `api/warehouseApi.ts` (`transferStock`), `components/TransferModal.tsx` (nuevo), `pages/Inventory.tsx` (botón "Trasladar stock" + modal + recarga). Sin cambios de sidebar.
+
+## Compatibilidad y riesgos
+
+- Opera con principal y secundarios según `WarehouseStock`. `referenceType: 'TRANSFER'` es distinto de `SALE`/`PURCHASE` (no se mezcla con ventas; la futura venta entre almacenes será una operación comercial aparte).
+- Espejo `Product.stockActual` solo se sincroniza cuando participa el principal.
+- Riesgo bajo: transacción única, guardia anti-negativos, exactamente 2 movimientos por traslado, sin cambios en flujos existentes.

@@ -1,4 +1,4 @@
-import type { Warehouse } from '../types/warehouse';
+import type { Warehouse, TransferStockDto } from '../types/warehouse';
 import { apiFetch } from './helpers';
 
 const BASE = '/warehouses';
@@ -47,4 +47,16 @@ export async function deleteWarehouse(id: string): Promise<void> {
     const msg = await res.text();
     throw new Error(msg || 'Error al eliminar almacén');
   }
+}
+
+export async function transferStock(dto: TransferStockDto): Promise<any> {
+  const res = await apiFetch(`${BASE}/transfer`, {
+    method: 'POST',
+    body: JSON.stringify(dto),
+  });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(msg || 'Error al trasladar stock');
+  }
+  return res.json();
 }

@@ -2,14 +2,16 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '../types/product';
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from '../api/productApi';
 import ProductModal from '../components/ProductModal';
+import TransferModal from '../components/TransferModal';
 import { useWarehouse } from '../context/WarehouseContext';
 
 export default function Inventory() {
-  const { selectedWarehouseId } = useWarehouse();
+  const { selectedWarehouseId, warehouses } = useWarehouse();
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [modalProduct, setModalProduct] = useState<Product | 'new' | null>(null);
+  const [showTransfer, setShowTransfer] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -64,9 +66,19 @@ export default function Inventory() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-800">Inventario</h2>
-        <button onClick={handleCreate} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer">
-          + Nuevo Producto
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowTransfer(true)}
+            disabled={warehouses.length < 2}
+            title={warehouses.length < 2 ? 'Se necesitan al menos dos almacenes' : 'Trasladar stock entre almacenes'}
+            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          >
+            Trasladar stock
+          </button>
+          <button onClick={handleCreate} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer">
+            + Nuevo Producto
+          </button>
+        </div>
       </div>
 
       <input
@@ -132,6 +144,13 @@ export default function Inventory() {
           product={modalProduct === 'new' ? null : modalProduct}
           onSave={handleSave}
           onClose={() => setModalProduct(null)}
+        />
+      )}
+
+      {showTransfer && (
+        <TransferModal
+          onClose={() => setShowTransfer(false)}
+          onTransferred={load}
         />
       )}
     </div>

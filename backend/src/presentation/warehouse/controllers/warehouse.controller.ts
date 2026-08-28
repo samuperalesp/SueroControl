@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, HttpCode, HttpStatus } from '@nestjs/common';
 import { WarehouseService } from '../../../application/warehouse/services/warehouse.service';
-import { CreateWarehouseDto, UpdateWarehouseDto } from '../../../application/warehouse/dtos/warehouse.dtos';
+import { CreateWarehouseDto, UpdateWarehouseDto, TransferStockDto } from '../../../application/warehouse/dtos/warehouse.dtos';
 import { Roles } from '../../../infrastructure/auth/decorators/roles.decorator';
 
 @Controller('warehouses')
@@ -25,6 +25,13 @@ export class WarehouseController {
   @Roles('ADMINISTRADOR')
   async create(@Body() dto: CreateWarehouseDto) {
     return this.warehouseService.create(dto);
+  }
+
+  @Post('transfer')
+  @HttpCode(HttpStatus.CREATED)
+  @Roles('ADMINISTRADOR', 'OPERADOR')
+  async transfer(@Body() dto: TransferStockDto) {
+    return this.warehouseService.transferStock(dto);
   }
 
   @Put(':id')
