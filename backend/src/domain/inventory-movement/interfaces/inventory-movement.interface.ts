@@ -2,6 +2,11 @@ import { InventoryMovement } from '../entities/inventory-movement.entity';
 
 export const INVENTORY_MOVEMENT_REPOSITORY = 'INVENTORY_MOVEMENT_REPOSITORY';
 
+export interface TransferMovement extends InventoryMovement {
+  product: { id: string; codigo: string; nombre: string };
+  warehouse: { id: string; nombre: string };
+}
+
 export interface IInventoryMovementRepository {
   create(data: {
     productId: string;
@@ -15,4 +20,5 @@ export interface IInventoryMovementRepository {
   }): Promise<InventoryMovement>;
   findByProductId(productId: string, warehouseId?: string): Promise<InventoryMovement[]>;
   findAll(warehouseId?: string): Promise<InventoryMovement[]>;
+  findTransfers(warehouseId?: string): Promise<TransferMovement[]>;
 }

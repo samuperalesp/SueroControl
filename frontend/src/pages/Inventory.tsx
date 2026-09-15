@@ -3,7 +3,10 @@ import type { Product } from '../types/product';
 import { fetchProducts, createProduct, updateProduct, deleteProduct } from '../api/productApi';
 import ProductModal from '../components/ProductModal';
 import TransferModal from '../components/TransferModal';
+import TransferHistory from '../components/TransferHistory';
 import { useWarehouse } from '../context/WarehouseContext';
+
+type Tab = 'inventario' | 'historial';
 
 export default function Inventory() {
   const { selectedWarehouseId, warehouses } = useWarehouse();
@@ -12,6 +15,8 @@ export default function Inventory() {
   const [loading, setLoading] = useState(true);
   const [modalProduct, setModalProduct] = useState<Product | 'new' | null>(null);
   const [showTransfer, setShowTransfer] = useState(false);
+  const [tab, setTab] = useState<Tab>('inventario');
+  const [historyKey, setHistoryKey] = useState(0);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -81,6 +86,29 @@ export default function Inventory() {
         </div>
       </div>
 
+      <div className="flex gap-1 mb-6 border-b border-gray-200">
+        <button
+          onClick={() => setTab('inventario')}
+          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer ${
+            tab === 'inventario' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Inventario
+        </button>
+        <button
+          onClick={() => setTab('historial')}
+          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer ${
+            tab === 'historial' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          Historial de traslados
+        </button>
+      </div>
+
+      {tab === 'historial' ? (
+        <TransferHistory key={historyKey} />
+      ) : (
+        <>
       <input
         type="text"
         placeholder="Buscar por nombre, código o categoría..."
@@ -138,6 +166,8 @@ export default function Inventory() {
           </table>
         </div>
       )}
+        </>
+      )}
 
       {modalProduct !== null && (
         <ProductModal
@@ -150,7 +180,7 @@ export default function Inventory() {
       {showTransfer && (
         <TransferModal
           onClose={() => setShowTransfer(false)}
-          onTransferred={load}
+          onTransferred={() => { load(); setHistoryKey(k => k + 1); }}
         />
       )}
     </div>

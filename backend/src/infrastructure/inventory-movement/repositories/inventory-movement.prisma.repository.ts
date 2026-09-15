@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IInventoryMovementRepository } from '../../../domain/inventory-movement/interfaces/inventory-movement.interface';
+import { IInventoryMovementRepository, TransferMovement } from '../../../domain/inventory-movement/interfaces/inventory-movement.interface';
 import { InventoryMovement } from '../../../domain/inventory-movement/entities/inventory-movement.entity';
 import { PrismaService } from '../../prisma/prisma.service';
 
@@ -50,5 +50,27 @@ export class InventoryMovementPrismaRepository implements IInventoryMovementRepo
       orderBy: { createdAt: 'desc' },
       include: { product: true },
     }) as Promise<InventoryMovement[]>;
+  }
+
+  async findTransfers(warehouseId?: string): Promise<TransferMovement[]> {
+    let referenceIds: string[] | undefined;
+    if (warehouseId) {
+      const rows = await this.prisma.inventoryMovement.findMany({
+        where: { referenceType: 'TRANSFER', warehouseId },
+        select: { referenceId: true },
+        distinct: ['referenceId'],
+      });
+      referenceIds = rows.map(r => r.referenceId);
+      if (referenceIds.length === 0) return [];
+    }
+
+    return this.prisma.inventoryMovement.findMany({
+      where: {
+        referenceType: 'TRANSFER',
+        ...(referenceIds ? { referenceId: { in: referenceIds } } : {}),
+      },
+      orderBy: { createdAt: 'desc' },
+      include: { product: true, warehouse: true },
+    });
   }
 }

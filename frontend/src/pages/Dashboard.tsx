@@ -17,14 +17,19 @@ export default function Dashboard() {
   const [data, setData] = useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [filterError, setFilterError] = useState('');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [appliedFrom, setAppliedFrom] = useState<string | undefined>(undefined);
+  const [appliedTo, setAppliedTo] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       setLoading(true);
-      setData(null);
+      setError('');
       try {
-        const result = await fetchDashboard(selectedWarehouseId ?? undefined);
+        const result = await fetchDashboard(selectedWarehouseId ?? undefined, appliedFrom, appliedTo);
         if (!cancelled) setData(result);
       } catch (e) {
         if (!cancelled) {
@@ -39,22 +44,24 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [selectedWarehouseId]);
+  }, [selectedWarehouseId, appliedFrom, appliedTo]);
 
-  if (loading) {
-    return (
-      <div className="text-center mt-20">
-        <p className="text-gray-400">Cargando dashboard...</p>
-      </div>
-    );
+  function handleApply() {
+    if (fromDate && toDate && new Date(fromDate).getTime() > new Date(toDate).getTime()) {
+      setFilterError('La fecha "Desde" no puede ser mayor que la fecha "Hasta"');
+      return;
+    }
+    setFilterError('');
+    setAppliedFrom(fromDate || undefined);
+    setAppliedTo(toDate || undefined);
   }
 
-  if (error) {
-    return (
-      <div className="text-center mt-20">
-        <p className="text-red-500">{error}</p>
-      </div>
-    );
+  function handleClear() {
+    setFromDate('');
+    setToDate('');
+    setAppliedFrom(undefined);
+    setAppliedTo(undefined);
+    setFilterError('');
   }
 
   const cards = [
@@ -90,58 +97,106 @@ export default function Dashboard() {
         Panel de Control{selectedWarehouse ? ` — ${selectedWarehouse.nombre}` : ''}
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {cards.map((card) => (
-          <div key={card.title} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-            <p className="text-sm text-gray-500 mb-1">{card.title}</p>
-            <p className={`text-2xl font-bold ${card.color.split(' ')[1]}`}>{card.value}</p>
-            <p className="text-xs text-gray-400 mt-2">{card.subtitle}</p>
+      <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm mb-6">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-600">Desde</label>
+            <input
+              type="date"
+              value={fromDate}
+              onChange={e => setFromDate(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400"
+            />
           </div>
-        ))}
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-medium text-gray-600">Hasta</label>
+            <input
+              type="date"
+              value={toDate}
+              onChange={e => setToDate(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+          <button
+            onClick={handleApply}
+            className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer"
+          >
+            Aplicar
+          </button>
+          <button
+            onClick={handleClear}
+            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 cursor-pointer"
+          >
+            Limpiar filtros
+          </button>
+        </div>
+        {filterError && <p className="text-red-500 text-xs mt-2">{filterError}</p>}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Resumen de Rentabilidad</h3>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-gray-600">Utilidad Total</span>
-              <span className="font-bold text-gray-800">{formatCOP(data?.utilidadTotal || 0)}</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-gray-100">
-              <span className="text-gray-600">Distribución al Centro</span>
-              <span className="font-medium text-purple-600">{formatCOP(data?.gananciaCentro || 0)}</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-gray-600">Paquetes Vendidos</span>
-              <span className="font-medium text-gray-800">{data?.totalPackagesSold || 0}</span>
-            </div>
-          </div>
+      {loading ? (
+        <div className="text-center mt-20">
+          <p className="text-gray-400">Cargando dashboard...</p>
         </div>
+      ) : error ? (
+        <div className="text-center mt-20">
+          <p className="text-red-500">{error}</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {cards.map((card) => (
+              <div key={card.title} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <p className="text-sm text-gray-500 mb-1">{card.title}</p>
+                <p className={`text-2xl font-bold ${card.color.split(' ')[1]}`}>{card.value}</p>
+                <p className="text-xs text-gray-400 mt-2">{card.subtitle}</p>
+              </div>
+            ))}
+          </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Top Médicos por Utilidad</h3>
-          {data?.topMedicos && data.topMedicos.length > 0 ? (
-            <div className="space-y-2">
-              {data.topMedicos.slice(0, 5).map((medico, idx) => (
-                <div key={medico.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                      idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : idx === 2 ? 'bg-amber-700' : 'bg-gray-300'
-                    }`}>
-                      {idx + 1}
-                    </span>
-                    <span className="text-sm text-gray-700">{medico.nombre}</span>
-                  </div>
-                  <span className="text-sm font-semibold text-green-600">{formatCOP(medico.total)}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Resumen de Rentabilidad</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-gray-600">Utilidad Total</span>
+                  <span className="font-bold text-gray-800">{formatCOP(data?.utilidadTotal || 0)}</span>
                 </div>
-              ))}
+                <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                  <span className="text-gray-600">Distribución al Centro</span>
+                  <span className="font-medium text-purple-600">{formatCOP(data?.gananciaCentro || 0)}</span>
+                </div>
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-gray-600">Paquetes Vendidos</span>
+                  <span className="font-medium text-gray-800">{data?.totalPackagesSold || 0}</span>
+                </div>
+              </div>
             </div>
-          ) : (
-            <p className="text-sm text-gray-400">No hay datos de médicos disponibles.</p>
-          )}
-        </div>
-      </div>
+
+            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+              <h3 className="text-sm font-semibold text-gray-700 mb-3">Top Médicos por Utilidad</h3>
+              {data?.topMedicos && data.topMedicos.length > 0 ? (
+                <div className="space-y-2">
+                  {data.topMedicos.slice(0, 5).map((medico, idx) => (
+                    <div key={medico.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
+                          idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : idx === 2 ? 'bg-amber-700' : 'bg-gray-300'
+                        }`}>
+                          {idx + 1}
+                        </span>
+                        <span className="text-sm text-gray-700">{medico.nombre}</span>
+                      </div>
+                      <span className="text-sm font-semibold text-green-600">{formatCOP(medico.total)}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400">No hay datos de médicos disponibles.</p>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

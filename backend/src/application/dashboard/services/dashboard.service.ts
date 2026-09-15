@@ -1,11 +1,15 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { DashboardQueryDto } from '../dtos/dashboard.dtos';
 
 @Injectable()
 export class DashboardService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getSummary(warehouseId?: string) {
+  async getSummary(params: DashboardQueryDto = {}) {
+    const { warehouseId, fromDate, toDate } = params;
+    const dateRange = this.buildDateRange(fromDate, toDate);
+
     const whereSale: any = { estado: 'ACTIVA' };
     const wherePurchase: any = { tipo: 'COMPRA' };
 
@@ -18,6 +22,11 @@ export class DashboardService {
       }
       whereSale.warehouseId = warehouseId;
       wherePurchase.warehouseId = warehouseId;
+    }
+
+    if (dateRange) {
+      whereSale.fechaVenta = { ...dateRange };
+      wherePurchase.fechaCompra = { ...dateRange };
     }
 
     const sales = await this.prisma.sale.findMany({
@@ -42,6 +51,7 @@ export class DashboardService {
         sale: {
           estado: 'ACTIVA',
           ...(warehouseId ? { warehouseId } : {}),
+          ...(dateRange ? { fechaVenta: { ...dateRange } } : {}),
         },
       },
       include: {
@@ -77,6 +87,25 @@ export class DashboardService {
       totalSales,
       totalPackagesSold,
       topMedicos,
+    };
+  }
+
+  private buildDateRange(fromDate?: string, toDate?: string): { gte?: Date; lte?: Date } | undefined {
+    if (!fromDate && !toDate) return undefined;
+
+    const from = fromDate ? new Date(`${fromDate.slice(0, 10)}T00:00:00`) : undefined;
+    const to = toDate ? new Date(`${toDate.slice(0, 10)}T00:00:00`) : undefined;
+
+    if ((from && isNaN(from.getTime())) || (to && isNaN(to.getTime()))) {
+      throw new BadRequestException('Rango de fechas inválido');
+    }
+    if (from && to && from.getTime() > to.getTime()) {
+      throw new BadRequestException('La fecha "desde" no puede ser mayor que la fecha "hasta"');
+    }
+
+    return {
+      ...(from ? { gte: from } : {}),
+      ...(to ? { lte: to } : {}),
     };
   }
 }

@@ -1,4 +1,4 @@
-import type { Warehouse, TransferStockDto } from '../types/warehouse';
+import type { Warehouse, TransferStockDto, TransferHistory } from '../types/warehouse';
 import { apiFetch } from './helpers';
 
 const BASE = '/warehouses';
@@ -58,5 +58,12 @@ export async function transferStock(dto: TransferStockDto): Promise<any> {
     const msg = await res.text();
     throw new Error(msg || 'Error al trasladar stock');
   }
+  return res.json();
+}
+
+export async function fetchTransferHistory(warehouseId?: string): Promise<TransferHistory[]> {
+  const qs = warehouseId ? `?warehouseId=${encodeURIComponent(warehouseId)}` : '';
+  const res = await apiFetch(`/inventory-movements/transfers${qs}`);
+  if (!res.ok) throw new Error('Error al obtener el historial de traslados');
   return res.json();
 }
