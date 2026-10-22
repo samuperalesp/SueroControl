@@ -107,29 +107,29 @@ export default function Purchases() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Compras</h2>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="sc-page-title">Compras</h2>
         <button
           onClick={tab === 'facturas' ? handleNewFactura : handleNewPedido}
-          className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer"
+          className="w-fit whitespace-nowrap rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-blue-500 dark:hover:bg-blue-400 cursor-pointer"
         >
           + Nueva {tab === 'facturas' ? 'Factura' : 'Pedido'}
         </button>
       </div>
 
-      <div className="flex gap-1 mb-6 border-b border-gray-200">
+      <div className="mb-6 flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800">
         <button
           onClick={() => setTab('facturas')}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer ${
-            tab === 'facturas' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'
+          className={`shrink-0 whitespace-nowrap rounded-t-xl px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer ${
+            tab === 'facturas' ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-500' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
           }`}
         >
           Facturas
         </button>
         <button
           onClick={() => setTab('pedidos')}
-          className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-colors cursor-pointer ${
-            tab === 'pedidos' ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'
+          className={`shrink-0 whitespace-nowrap rounded-t-xl px-4 py-2.5 text-sm font-medium transition-colors cursor-pointer ${
+            tab === 'pedidos' ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-500' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
           }`}
         >
           Pedidos
@@ -137,15 +137,15 @@ export default function Purchases() {
       </div>
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Cargando...</p>
+        <p className="text-slate-400 dark:text-slate-500 text-sm">Cargando...</p>
       ) : activeList.length === 0 ? (
-        <p className="text-gray-400 text-sm">
+        <p className="text-slate-400 dark:text-slate-500 text-sm">
           No hay {tab === 'facturas' ? 'facturas' : 'pedidos'} registrados.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <table className="w-full text-sm">
-            <thead className="bg-gray-100 text-gray-600 text-left">
+            <thead className="bg-slate-50 text-slate-500 text-left dark:bg-slate-800/60 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-medium">Fecha</th>
                 <th className="px-4 py-3 font-medium">N° Factura</th>
@@ -156,19 +156,19 @@ export default function Purchases() {
                 {tab === 'pedidos' && <th className="px-4 py-3 font-medium">Acciones</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {activeList.map(p => (
-                <tr key={p.id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 text-gray-500">{(p.fechaCompra ?? p.createdAt).split('T')[0]}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.facturaNumero || '-'}</td>
-                  <td className="px-4 py-3 text-gray-800">{getProveedorName(p.terceroId)}</td>
-                  <td className="px-4 py-3 text-gray-500">
+                <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{(p.fechaCompra ?? p.createdAt).split('T')[0]}</td>
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{p.facturaNumero || '-'}</td>
+                  <td className="px-4 py-3 text-slate-800 dark:text-slate-100">{getProveedorName(p.terceroId)}</td>
+                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                     {p.details?.map(d => `${getProductName(d.productId)} x${d.quantity}`).join(', ')}
                   </td>
-                  <td className="px-4 py-3 text-gray-700 font-medium">${p.total.toFixed(2)}</td>
+                  <td className="px-4 py-3 text-slate-700 dark:text-slate-200 font-medium">${p.total.toFixed(2)}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                      p.tipo === 'COMPRA' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                      p.tipo === 'COMPRA' ? 'bg-green-100 dark:bg-emerald-500/15 text-green-700 dark:text-emerald-400' : 'bg-yellow-100 dark:bg-amber-500/15 text-yellow-700 dark:text-amber-400'
                     }`}>
                       {p.tipo === 'COMPRA' ? 'Completado' : 'Pendiente'}
                     </span>
@@ -177,11 +177,11 @@ export default function Purchases() {
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <button onClick={() => handleEditPedido(p)}
-                          className="text-blue-600 hover:text-blue-800 text-xs font-medium cursor-pointer">
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-xs font-medium cursor-pointer">
                           Editar
                         </button>
                         <button onClick={() => handleConvert(p.id)}
-                          className="text-green-600 hover:text-green-800 text-xs font-medium cursor-pointer">
+                          className="text-green-600 dark:text-emerald-400 hover:text-green-800 dark:hover:text-emerald-300 text-xs font-medium cursor-pointer">
                           Convertir a Compra
                         </button>
                       </div>

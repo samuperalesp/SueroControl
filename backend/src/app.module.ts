@@ -13,6 +13,7 @@ import { DashboardModule } from './dashboard.module';
 import { AuthModule } from './auth.module';
 import { UserModule } from './user.module';
 import { PackageSessionModule } from './package-session.module';
+import { ReportsModule } from './reports.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { PackageSessionModule } from './package-session.module';
     InventoryMovementModule,
     DashboardModule,
     PackageSessionModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

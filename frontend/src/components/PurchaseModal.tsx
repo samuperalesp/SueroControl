@@ -161,36 +161,36 @@ export default function PurchaseModal({ tipo, products, proveedores, initialData
   }, 0);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 mx-4">
-        <h2 className="text-xl font-bold mb-4 text-gray-800">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+      <form onSubmit={handleSubmit} className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 mx-4">
+        <h2 className="mb-4 text-lg font-semibold tracking-tight text-slate-900 dark:text-white">
           {tipo === 'COMPRA' ? 'Registrar Factura de Compra' : 'Registrar Pedido'}
         </h2>
 
-        {errors.general && <p className="text-red-500 text-xs mb-3">{errors.general}</p>}
+        {errors.general && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{errors.general}</p>}
 
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-3">
           <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">N° Factura Proveedor</label>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">N° Factura Proveedor</label>
             <input type="text" value={facturaNumero} onChange={e => setFacturaNumero(e.target.value)} placeholder="Opcional"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+              className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Fecha de la Compra</label>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Fecha de la Compra</label>
             <input type="date" value={fechaCompra} onChange={e => setFechaCompra(e.target.value)}
               max={new Date().toISOString().split('T')[0]}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+              className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
           </div>
           <div ref={proveedorRef} className="relative">
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Proveedor</label>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Proveedor</label>
             <input type="text" value={proveedorSearch} onChange={e => { setProveedorSearch(e.target.value); setSelectedProveedorId(''); setShowProveedorDropdown(true); }}
               onFocus={() => setShowProveedorDropdown(true)} placeholder="Buscar proveedor..." autoComplete="off"
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+              className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
             {showProveedorDropdown && getProveedorFiltered(proveedorSearch).length > 0 && (
-              <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+              <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-36 overflow-y-auto">
                 {getProveedorFiltered(proveedorSearch).map(p => (
                   <li key={p.id} onClick={() => selectProveedor(p)}
-                    className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                    className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10">
                     {p.tipoPersona === 'NATURAL' ? `${p.nombres} ${p.apellidos}` : p.razonSocial} - {p.numeroDocumento}
                   </li>
                 ))}
@@ -203,56 +203,56 @@ export default function PurchaseModal({ tipo, products, proveedores, initialData
           {items.map((item, idx) => {
             const filtered = getFiltered(searchTexts[idx]);
             return (
-              <div key={idx} className="flex gap-3 items-end border border-gray-200 rounded-lg p-3">
+              <div key={idx} className="flex flex-wrap gap-3 items-end border border-slate-200 dark:border-slate-800 rounded-xl p-3">
                 <div className="flex-1 relative" ref={el => { searchRefs.current[idx] = el; }}>
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">Producto</label>
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Producto</label>
                   <input type="text" placeholder="Buscar por código o nombre..." value={searchTexts[idx]}
                     onChange={e => updateSearch(idx, e.target.value)} onFocus={() => setOpenDropdown(idx)} autoComplete="off"
-                    className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-product`] ? 'border-red-400' : 'border-gray-300'}`} />
+                    className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-product`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                   {openDropdown === idx && filtered.length > 0 && (
-                    <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                       {filtered.map(p => (
                         <li key={p.id} onClick={() => selectProduct(idx, p)}
-                          className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
+                          className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                           <span className="font-medium">{p.codigo}</span>
-                          <span className="text-gray-500 ml-2">{p.nombre}</span>
-                          <span className="text-gray-400 ml-auto">Stock: {p.stockActual}</span>
+                          <span className="text-slate-500 dark:text-slate-400 ml-2">{p.nombre}</span>
+                          <span className="text-slate-400 dark:text-slate-500 ml-auto">Stock: {p.stockActual}</span>
                         </li>
                       ))}
                     </ul>
                   )}
                 </div>
                 <div className="w-24">
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">Cantidad</label>
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Cantidad</label>
                   <input type="number" min={1} value={item.quantity}
                     onChange={e => updateItem(idx, 'quantity', parseInt(e.target.value) || 0)}
-                    className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-qty`] ? 'border-red-400' : 'border-gray-300'}`} />
+                    className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-qty`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                 </div>
                 <div className="w-28">
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">Costo Unit.</label>
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Costo Unit.</label>
                   <input type="number" step="0.01" min={0} value={item.unitCost}
                     onChange={e => updateItem(idx, 'unitCost', parseFloat(e.target.value) || 0)}
-                    className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-cost`] ? 'border-red-400' : 'border-gray-300'}`} />
+                    className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-cost`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                 </div>
                 <div className="w-20 text-right">
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">Subtotal</label>
-                  <p className="text-sm text-gray-800 py-2">${(item.quantity * (item.unitCost || 0)).toFixed(2)}</p>
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Subtotal</label>
+                  <p className="text-sm text-slate-800 dark:text-slate-100 py-2">${(item.quantity * (item.unitCost || 0)).toFixed(2)}</p>
                 </div>
-                <button type="button" onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-700 text-lg cursor-pointer pb-1" title="Eliminar">×</button>
+                <button type="button" onClick={() => removeItem(idx)} className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-lg cursor-pointer pb-1" title="Eliminar">×</button>
               </div>
             );
           })}
         </div>
 
-        <button type="button" onClick={addItem} className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer">+ Agregar producto</button>
+        <button type="button" onClick={addItem} className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium cursor-pointer">+ Agregar producto</button>
 
         <div className="flex justify-end mt-4 mb-6">
-          <p className="text-lg font-bold text-gray-800">Total: ${total.toFixed(2)}</p>
+          <p className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">Total: ${total.toFixed(2)}</p>
         </div>
 
         <div className="flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cancelar</button>
-          <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
+          <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cancelar</button>
+          <button type="submit" disabled={saving} className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-blue-500 hover:bg-slate-800 dark:hover:bg-blue-400 disabled:opacity-50 cursor-pointer">
             {saving ? 'Guardando...' : initialData ? 'Guardar Cambios' : tipo === 'COMPRA' ? 'Registrar Compra' : 'Registrar Pedido'}
           </button>
         </div>
