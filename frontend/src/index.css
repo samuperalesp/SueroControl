@@ -1,6 +1,164 @@
 @import "tailwindcss";
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+/* Modo oscuro controlado por clase (`<html class="dark">`) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Inter", "SF Pro Display", "Segoe UI", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif;
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 12px 32px -18px rgb(15 23 42 / 0.18);
+  --shadow-sidebar: 0 24px 60px -20px rgb(15 23 42 / 0.35);
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: var(--font-sans);
+    background-color: #f8fafc;
+    color: #0f172a;
+    transition: background-color 250ms ease, color 250ms ease;
+  }
+
+  .dark body {
+    background-color: #020617;
+    color: #e2e8f0;
+  }
+
+  #root {
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background-color: rgb(37 99 235 / 0.18);
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(59 130 246 / 0.7);
+    outline-offset: 2px;
+  }
+
+  /* Transición de color global al alternar el tema */
+  *,
+  *::before,
+  *::after {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: 180ms;
+    transition-timing-function: ease;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 1ms !important;
+      transition-duration: 1ms !important;
+    }
+  }
+
+  /* Controles de formulario legibles en ambos temas */
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    color: #0f172a;
+    background-color: #ffffff;
+  }
+
+  .dark input:not([type="checkbox"]):not([type="radio"]),
+  .dark select,
+  .dark textarea {
+    color: #e2e8f0;
+    background-color: rgb(15 23 42 / 0.65);
+  }
+
+  .dark select option {
+    color: #e2e8f0;
+    background-color: #0f172a;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: #94a3b8;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #64748b;
+  }
+
+  /* Scrollbar discreto y coherente con la paleta */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 163 184 / 0.45) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background-color: rgb(148 163 184 / 0.4);
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(100 116 139 / 0.6);
+  }
+}
+
+@layer components {
+  .sc-card {
+    @apply rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900;
+  }
+
+  .sc-card-hover {
+    @apply transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:hover:border-slate-700;
+  }
+
+  .sc-page-title {
+    @apply text-2xl font-semibold tracking-tight text-slate-900 dark:text-white;
+  }
+
+  .sc-page-subtitle {
+    @apply mt-1 text-sm text-slate-500 dark:text-slate-400;
+  }
+
+  .sc-fade-in {
+    animation: sc-fade-in 220ms ease-out both;
+  }
+
+  .sc-slide-up {
+    animation: sc-slide-up 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes sc-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sc-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }

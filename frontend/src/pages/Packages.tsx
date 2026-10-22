@@ -262,21 +262,21 @@ export default function Packages() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Paquetes</h2>
-        <button onClick={() => { resetModal(); setShowModal(true); }} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="sc-page-title">Paquetes</h2>
+        <button onClick={() => { resetModal(); setShowModal(true); }} className="w-fit whitespace-nowrap rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-blue-500 dark:hover:bg-blue-400 cursor-pointer">
           + Nuevo Paquete
         </button>
       </div>
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Cargando...</p>
+        <p className="text-slate-400 dark:text-slate-500 text-sm">Cargando...</p>
       ) : packages.length === 0 ? (
-        <p className="text-gray-400 text-sm">No hay paquetes registrados.</p>
+        <p className="text-slate-400 dark:text-slate-500 text-sm">No hay paquetes registrados.</p>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <table className="w-full text-sm">
-            <thead className="bg-gray-100 text-gray-600 text-left">
+            <thead className="bg-slate-50 text-slate-500 text-left dark:bg-slate-800/60 dark:text-slate-400">
               <tr>
                 <th className="px-4 py-3 font-medium">Nombre</th>
                 <th className="px-4 py-3 font-medium">Precio Venta</th>
@@ -290,7 +290,7 @@ export default function Packages() {
                 <th className="px-4 py-3 font-medium">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {packages.map(pkg => {
                 const cm = pkg.details?.reduce((s, d) => {
                   const p = products.find(pr => pr.id === d.productId);
@@ -300,28 +300,28 @@ export default function Packages() {
                 const ct = cm + co;
                 const u = pkg.precio - ct;
                 return (
-                  <tr key={pkg.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 text-gray-800 font-medium">{pkg.nombre}</td>
-                    <td className="px-4 py-3 text-gray-700">${pkg.precio.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-gray-500">${cm.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-gray-500">${co.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-gray-500">${ct.toFixed(2)}</td>
-                    <td className={`px-4 py-3 font-medium ${u >= 0 ? 'text-green-600' : 'text-red-600'}`}>${u.toFixed(2)}</td>
-                    <td className="px-4 py-3 text-gray-500">{pkg.porcentajeMedico}%</td>
-                    <td className="px-4 py-3 text-gray-500">{pkg.porcentajeCentro}%</td>
+                  <tr key={pkg.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                    <td className="px-4 py-3 text-slate-800 dark:text-slate-100 font-medium">{pkg.nombre}</td>
+                    <td className="px-4 py-3 text-slate-700 dark:text-slate-200">${pkg.precio.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">${cm.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">${co.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">${ct.toFixed(2)}</td>
+                    <td className={`px-4 py-3 font-medium ${u >= 0 ? 'text-green-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>${u.toFixed(2)}</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{pkg.porcentajeMedico}%</td>
+                    <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{pkg.porcentajeCentro}%</td>
                     <td className="px-4 py-3">
-                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${pkg.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${pkg.activo ? 'bg-green-100 dark:bg-emerald-500/15 text-green-700 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
                         {pkg.activo ? 'Activo' : 'Inactivo'}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <button onClick={() => openSell(pkg)} disabled={!pkg.activo}
-                          className={`text-xs px-2 py-1 rounded border ${pkg.activo ? 'border-green-300 text-green-600 hover:bg-green-50 cursor-pointer' : 'border-gray-200 text-gray-300'}`}>Vender</button>
+                          className={`text-xs px-2 py-1 rounded border ${pkg.activo ? 'border-green-300 dark:border-emerald-500/40 text-green-600 dark:text-emerald-400 hover:bg-green-50 dark:hover:bg-emerald-500/10 cursor-pointer' : 'border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-600'}`}>Vender</button>
                         <button onClick={() => openEdit(pkg)}
-                          className="text-xs px-2 py-1 rounded border border-blue-300 text-blue-600 hover:bg-blue-50 cursor-pointer">Editar</button>
+                          className="text-xs px-2 py-1 rounded border border-blue-300 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 cursor-pointer">Editar</button>
                         <button onClick={() => setShowDelete(pkg.id)}
-                          className="text-xs px-2 py-1 rounded border border-red-300 text-red-600 hover:bg-red-50 cursor-pointer">Eliminar</button>
+                          className="text-xs px-2 py-1 rounded border border-red-300 dark:border-red-500/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer">Eliminar</button>
                       </div>
                     </td>
                   </tr>
@@ -334,65 +334,65 @@ export default function Packages() {
 
       {/* Create / Edit Modal */}
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <form onSubmit={handleSave} className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 mx-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">{editingId ? 'Editar Paquete' : 'Nuevo Paquete'}</h2>
-            {errors.general && <p className="text-red-500 text-xs mb-3">{errors.general}</p>}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <form onSubmit={handleSave} className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 mx-4">
+            <h2 className="mb-4 text-lg font-semibold tracking-tight text-slate-900 dark:text-white">{editingId ? 'Editar Paquete' : 'Nuevo Paquete'}</h2>
+            {errors.general && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{errors.general}</p>}
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2">
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Nombre</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Nombre</label>
                 <input type="text" value={nombre} onChange={e => setNombre(e.target.value)}
-                  className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.nombre ? 'border-red-400' : 'border-gray-300'}`} />
-                {errors.nombre && <p className="text-red-500 text-xs mt-1">{errors.nombre}</p>}
+                  className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.nombre ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
+                {errors.nombre && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.nombre}</p>}
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Precio de Venta</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Precio de Venta</label>
                 <input type="number" step="0.01" min={0} value={precio} onChange={e => setPrecio(parseFloat(e.target.value) || 0)}
-                  className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.precio ? 'border-red-400' : 'border-gray-300'}`} />
-                {errors.precio && <p className="text-red-500 text-xs mt-1">{errors.precio}</p>}
+                  className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.precio ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
+                {errors.precio && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.precio}</p>}
               </div>
-              <div className="col-span-2">
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Descripción</label>
+              <div className="sm:col-span-2">
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Descripción</label>
                 <textarea value={descripcion} onChange={e => setDescripcion(e.target.value)} rows={2}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                  className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2">
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">% Médico</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">% Médico</label>
                 <input type="number" min={0} max={100} value={porcentajeMedico} onChange={e => setPorcentajeMedico(parseInt(e.target.value) || 0)}
-                  className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.porcentaje ? 'border-red-400' : 'border-gray-300'}`} />
+                  className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.porcentaje ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">% Centro</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">% Centro</label>
                 <input type="number" min={0} max={100} value={porcentajeCentro} onChange={e => setPorcentajeCentro(parseInt(e.target.value) || 0)}
-                  className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.porcentaje ? 'border-red-400' : 'border-gray-300'}`} />
-                {errors.porcentaje && <p className="text-red-500 text-xs mt-1">{errors.porcentaje}</p>}
+                  className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.porcentaje ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
+                {errors.porcentaje && <p className="text-red-500 dark:text-red-400 text-xs mt-1">{errors.porcentaje}</p>}
               </div>
             </div>
 
             {/* Products (Package Details) */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-medium text-gray-600">Productos del Paquete</label>
-                <button type="button" onClick={addDetail} className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer">+ Agregar producto</button>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Productos del Paquete</label>
+                <button type="button" onClick={addDetail} className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium cursor-pointer">+ Agregar producto</button>
               </div>
               <div className="space-y-2">
                 {details.map((detail, idx) => {
                   const filtered = getFiltered(searchTexts[idx]);
                   return (
-                    <div key={idx} className="flex gap-3 items-end border border-gray-200 rounded-lg p-2">
+                    <div key={idx} className="flex flex-wrap gap-3 items-end border border-slate-200 dark:border-slate-800 rounded-xl p-2">
                       <div className="flex-1 relative" ref={el => { searchRefs.current[idx] = el; }}>
                         <input type="text" placeholder="Buscar producto..." value={searchTexts[idx]} onChange={e => updateSearch(idx, e.target.value)} onFocus={() => setOpenDropdown(idx)} autoComplete="off"
-                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`detail-${idx}-product`] ? 'border-red-400' : 'border-gray-300'}`} />
+                          className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`detail-${idx}-product`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                         {openDropdown === idx && filtered.length > 0 && (
-                          <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                          <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-36 overflow-y-auto">
                             {filtered.map(p => (
-                              <li key={p.id} onClick={() => selectProduct(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
+                              <li key={p.id} onClick={() => selectProduct(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                                 <span>{p.codigo} - {p.nombre}</span>
-                                <span className="text-gray-400">Stock: {p.stockActual}</span>
+                                <span className="text-slate-400 dark:text-slate-500">Stock: {p.stockActual}</span>
                               </li>
                             ))}
                           </ul>
@@ -400,9 +400,9 @@ export default function Packages() {
                       </div>
                       <div className="w-20">
                         <input type="number" min={1} value={detail.quantity} onChange={e => setDetails(details.map((d, i) => i === idx ? { ...d, quantity: parseInt(e.target.value) || 0 } : d))}
-                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`detail-${idx}-qty`] ? 'border-red-400' : 'border-gray-300'}`} />
+                          className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`detail-${idx}-qty`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                       </div>
-                      <button type="button" onClick={() => removeDetail(idx)} className="text-red-500 hover:text-red-700 text-lg cursor-pointer pb-1">×</button>
+                      <button type="button" onClick={() => removeDetail(idx)} className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-lg cursor-pointer pb-1">×</button>
                     </div>
                   );
                 })}
@@ -412,24 +412,24 @@ export default function Packages() {
             {/* Operating Costs */}
             <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-medium text-gray-600">Costos Operativos</label>
-                <button type="button" onClick={addOperatingCost} className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer">+ Agregar costo</button>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Costos Operativos</label>
+                <button type="button" onClick={addOperatingCost} className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium cursor-pointer">+ Agregar costo</button>
               </div>
               {operatingCosts.length === 0 ? (
-                <p className="text-xs text-gray-400 italic">Sin costos operativos registrados</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 italic">Sin costos operativos registrados</p>
               ) : (
                 <div className="space-y-2">
                   {operatingCosts.map((oc, idx) => (
-                    <div key={idx} className="flex gap-3 items-end border border-gray-200 rounded-lg p-2">
+                    <div key={idx} className="flex flex-wrap gap-3 items-end border border-slate-200 dark:border-slate-800 rounded-xl p-2">
                       <div className="flex-1">
                         <input type="text" placeholder="Concepto (ej: Aplicación enfermería)" value={oc.concepto} onChange={e => setOperatingCosts(operatingCosts.map((c, i) => i === idx ? { ...c, concepto: e.target.value } : c))}
-                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`cost-${idx}-concept`] ? 'border-red-400' : 'border-gray-300'}`} />
+                          className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`cost-${idx}-concept`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                       </div>
                       <div className="w-28">
                         <input type="number" step="0.01" min={0} placeholder="Valor" value={oc.valor} onChange={e => setOperatingCosts(operatingCosts.map((c, i) => i === idx ? { ...c, valor: parseFloat(e.target.value) || 0 } : c))}
-                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`cost-${idx}-value`] ? 'border-red-400' : 'border-gray-300'}`} />
+                          className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`cost-${idx}-value`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                       </div>
-                      <button type="button" onClick={() => removeOperatingCost(idx)} className="text-red-500 hover:text-red-700 text-lg cursor-pointer pb-1">×</button>
+                      <button type="button" onClick={() => removeOperatingCost(idx)} className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-lg cursor-pointer pb-1">×</button>
                     </div>
                   ))}
                 </div>
@@ -437,44 +437,44 @@ export default function Packages() {
             </div>
 
             {/* Profitability Preview */}
-            <div className="bg-gray-50 rounded-lg p-4 mb-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Vista Previa de Rentabilidad</h3>
+            <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4 mb-4">
+              <h3 className="mb-2 text-sm font-semibold text-slate-900 dark:text-white">Vista Previa de Rentabilidad</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                 <div>
-                  <span className="text-gray-500">Costo Medicamentos:</span>
+                  <span className="text-slate-500 dark:text-slate-400">Costo Medicamentos:</span>
                   <p className="font-medium">${costoMedicamentosCalc.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Costo Operativo:</span>
+                  <span className="text-slate-500 dark:text-slate-400">Costo Operativo:</span>
                   <p className="font-medium">${costoOperativoCalc.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Costo Total:</span>
+                  <span className="text-slate-500 dark:text-slate-400">Costo Total:</span>
                   <p className="font-medium">${costoTotalCalc.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Utilidad:</span>
-                  <p className={`font-bold ${utilidadCalc >= 0 ? 'text-green-600' : 'text-red-600'}`}>${utilidadCalc.toFixed(2)}</p>
+                  <span className="text-slate-500 dark:text-slate-400">Utilidad:</span>
+                  <p className={`font-bold ${utilidadCalc >= 0 ? 'text-green-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>${utilidadCalc.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Ganancia Médico ({porcentajeMedico}%):</span>
-                  <p className="font-medium text-blue-600">${gananciaMedicoCalc.toFixed(2)}</p>
+                  <span className="text-slate-500 dark:text-slate-400">Ganancia Médico ({porcentajeMedico}%):</span>
+                  <p className="font-medium text-blue-600 dark:text-blue-400">${gananciaMedicoCalc.toFixed(2)}</p>
                 </div>
                 <div>
-                  <span className="text-gray-500">Ganancia Centro ({porcentajeCentro}%):</span>
-                  <p className="font-medium text-purple-600">${gananciaCentroCalc.toFixed(2)}</p>
+                  <span className="text-slate-500 dark:text-slate-400">Ganancia Centro ({porcentajeCentro}%):</span>
+                  <p className="font-medium text-purple-600 dark:text-purple-400">${gananciaCentroCalc.toFixed(2)}</p>
                 </div>
               </div>
             </div>
 
             <div className="flex items-center mb-4">
               <input type="checkbox" id="activo" checked={activo} onChange={e => setActivo(e.target.checked)} className="mr-2" />
-              <label htmlFor="activo" className="text-sm text-gray-600">Activo</label>
+              <label htmlFor="activo" className="text-sm text-slate-600 dark:text-slate-300">Activo</label>
             </div>
 
             <div className="flex justify-end gap-3">
-              <button type="button" onClick={resetModal} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cancelar</button>
-              <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
+              <button type="button" onClick={resetModal} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cancelar</button>
+              <button type="submit" disabled={saving} className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-blue-500 hover:bg-slate-800 dark:hover:bg-blue-400 disabled:opacity-50 cursor-pointer">
                 {saving ? 'Guardando...' : 'Guardar'}
               </button>
             </div>
@@ -484,39 +484,39 @@ export default function Packages() {
 
       {/* Sell Modal */}
       {showSellModal && sellingPackage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 mx-4">
-            <h2 className="text-xl font-bold mb-2 text-gray-800">Vender Paquete</h2>
-            <p className="text-sm text-gray-600 mb-4">{sellingPackage.nombre} - ${sellingPackage.precio.toFixed(2)}</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <div className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-md p-6 mx-4">
+            <h2 className="mb-2 text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Vender Paquete</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-300 mb-4">{sellingPackage.nombre} - ${sellingPackage.precio.toFixed(2)}</p>
 
             {sellResult ? (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
-                <p className="text-green-700 font-medium text-sm mb-2">Venta registrada exitosamente</p>
-                <p className="text-xs text-gray-600">Comprobante: #{String(sellResult.consecutivo).padStart(6, '0')}</p>
+              <div className="bg-green-50 dark:bg-emerald-500/10 border border-green-200 dark:border-emerald-500/30 rounded-xl p-4 mb-4">
+                <p className="text-green-700 dark:text-emerald-400 font-medium text-sm mb-2">Venta registrada exitosamente</p>
+                <p className="text-xs text-slate-600 dark:text-slate-300">Comprobante: #{String(sellResult.consecutivo).padStart(6, '0')}</p>
                 {sellResult.packageProfitability && (
                   <div className="mt-2 text-xs space-y-1">
                     <p>Costo Medicamentos: ${sellResult.packageProfitability.costoMedicamentos.toFixed(2)}</p>
                     <p>Costo Operativo: ${sellResult.packageProfitability.costoOperativo.toFixed(2)}</p>
                     <p>Costo Total: ${sellResult.packageProfitability.costoTotal.toFixed(2)}</p>
-                    <p className="font-bold text-green-700">Utilidad: ${sellResult.packageProfitability.utilidad.toFixed(2)}</p>
+                    <p className="font-bold text-green-700 dark:text-emerald-400">Utilidad: ${sellResult.packageProfitability.utilidad.toFixed(2)}</p>
                   </div>
                 )}
               </div>
             ) : (
               <>
-                {errors.sell && <p className="text-red-500 text-xs mb-3">{errors.sell}</p>}
+                {errors.sell && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{errors.sell}</p>}
                 <div ref={clienteRef} className="relative mb-4">
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">Cliente (opcional)</label>
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Cliente (opcional)</label>
                   <input type="text" value={clienteSearch} onChange={e => { setClienteSearch(e.target.value); setSelectedClienteId(''); setShowClienteDropdown(true); }}
                     onFocus={() => setShowClienteDropdown(true)} placeholder="Buscar cliente..." autoComplete="off"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                    className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
                   {showClienteDropdown && (
-                    <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                    <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-36 overflow-y-auto">
                       {clientes.filter(c => {
                         const name = c.tipoPersona === 'NATURAL' ? `${c.nombres} ${c.apellidos}` : c.razonSocial || '';
                         return name.toLowerCase().includes(clienteSearch.toLowerCase()) || c.numeroDocumento.includes(clienteSearch);
                       }).map(c => (
-                        <li key={c.id} onClick={() => selectCliente(c)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                        <li key={c.id} onClick={() => selectCliente(c)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10">
                           {c.tipoPersona === 'NATURAL' ? `${c.nombres} ${c.apellidos}` : c.razonSocial} - {c.numeroDocumento}
                         </li>
                       ))}
@@ -524,17 +524,17 @@ export default function Packages() {
                   )}
                 </div>
                 <div ref={medicoRefPkg} className="relative mb-4">
-                  <label className="text-xs font-medium text-gray-600 mb-1 block">Médico <span className="text-red-500">*</span></label>
+                  <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Médico <span className="text-red-500 dark:text-red-400">*</span></label>
                   <input type="text" value={medicoSearchPkg} onChange={e => { setMedicoSearchPkg(e.target.value); setSelectedMedicoIdPkg(''); setShowMedicoDropdownPkg(true); }}
                     onFocus={() => setShowMedicoDropdownPkg(true)} placeholder="Buscar médico..." autoComplete="off"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                    className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
                   {showMedicoDropdownPkg && (
-                    <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                    <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-36 overflow-y-auto">
                       {medicos.filter(m => {
                         const name = `${m.nombres} ${m.apellidos}`;
                         return name.toLowerCase().includes(medicoSearchPkg.toLowerCase()) || m.numeroDocumento.includes(medicoSearchPkg) || (m.registroProfesional || '').includes(medicoSearchPkg);
                       }).map(m => (
-                        <li key={m.id} onClick={() => selectMedicoPkg(m)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                        <li key={m.id} onClick={() => selectMedicoPkg(m)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10">
                           {m.nombres} {m.apellidos} - {m.numeroDocumento}
                         </li>
                       ))}
@@ -546,12 +546,12 @@ export default function Packages() {
 
             <div className="flex justify-end gap-3 mt-4">
               <button onClick={() => { setShowSellModal(false); setSellResult(null); }}
-                className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">
+                className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">
                 {sellResult ? 'Cerrar' : 'Cancelar'}
               </button>
               {!sellResult && (
                 <button onClick={handleSell} disabled={sellSaving}
-                  className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 cursor-pointer">
+                  className="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 cursor-pointer">
                   {sellSaving ? 'Vendiendo...' : 'Confirmar Venta'}
                 </button>
               )}
@@ -562,13 +562,13 @@ export default function Packages() {
 
       {/* Delete Confirm */}
       {showDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 mx-4">
-            <h2 className="text-lg font-bold text-gray-800 mb-2">Eliminar Paquete</h2>
-            <p className="text-sm text-gray-500 mb-4">¿Está seguro de eliminar este paquete? Esta acción no se puede deshacer.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <div className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-sm p-6 mx-4">
+            <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white mb-2">Eliminar Paquete</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">¿Está seguro de eliminar este paquete? Esta acción no se puede deshacer.</p>
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowDelete(null)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cancelar</button>
-              <button onClick={() => handleDelete(showDelete)} className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 cursor-pointer">Eliminar</button>
+              <button onClick={() => setShowDelete(null)} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cancelar</button>
+              <button onClick={() => handleDelete(showDelete)} className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 cursor-pointer">Eliminar</button>
             </div>
           </div>
         </div>

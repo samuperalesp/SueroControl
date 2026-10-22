@@ -57,7 +57,7 @@ export default function TransferHistory() {
         <button
           type="button"
           onClick={() => toggleSort(key)}
-          className="flex items-center gap-1 hover:text-gray-800 cursor-pointer"
+          className="flex items-center gap-1 hover:text-slate-800 dark:hover:text-white cursor-pointer"
         >
           {label}
           <span className="text-xs">{sort.key === key ? (sort.dir === 'asc' ? '↑' : '↓') : ''}</span>
@@ -67,22 +67,22 @@ export default function TransferHistory() {
   }
 
   if (loading) {
-    return <p className="text-gray-400 text-sm">Cargando...</p>;
+    return <p className="text-slate-400 dark:text-slate-500 text-sm">Cargando...</p>;
   }
 
   if (error) {
-    return <p className="text-red-500 text-sm">{error}</p>;
+    return <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>;
   }
 
   if (sorted.length === 0) {
-    return <p className="text-gray-400 text-sm">No hay traslados registrados.</p>;
+    return <p className="text-slate-400 dark:text-slate-500 text-sm">No hay traslados registrados.</p>;
   }
 
   return (
     <>
-      <div className="overflow-x-auto rounded-xl border border-gray-200">
+      <div className="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <table className="w-full text-sm">
-          <thead className="bg-gray-100 text-gray-600 text-left">
+          <thead className="bg-slate-50 text-slate-500 text-left dark:bg-slate-800/60 dark:text-slate-400">
             <tr>
               {header('Fecha', 'fecha')}
               {header('Almacén origen', 'origen')}
@@ -92,19 +92,19 @@ export default function TransferHistory() {
               <th className="px-4 py-3 font-medium">Acciones</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {sorted.map(t => (
-              <tr key={t.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-gray-500">{formatFecha(t.fecha)}</td>
-                <td className="px-4 py-3 text-gray-800">{t.origen?.nombre ?? '—'}</td>
-                <td className="px-4 py-3 text-gray-800">{t.destino?.nombre ?? '—'}</td>
-                <td className="px-4 py-3 text-gray-700">{t.productosDiferentes}</td>
-                <td className="px-4 py-3 text-gray-700">{t.totalUnidades}</td>
+              <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{formatFecha(t.fecha)}</td>
+                <td className="px-4 py-3 text-slate-800 dark:text-slate-100">{t.origen?.nombre ?? '—'}</td>
+                <td className="px-4 py-3 text-slate-800 dark:text-slate-100">{t.destino?.nombre ?? '—'}</td>
+                <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{t.productosDiferentes}</td>
+                <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{t.totalUnidades}</td>
                 <td className="px-4 py-3">
                   <button
                     type="button"
                     onClick={() => setSelected(t)}
-                    className="text-blue-600 hover:text-blue-800 text-xs font-medium cursor-pointer"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-xs font-medium cursor-pointer"
                   >
                     Ver detalle
                   </button>

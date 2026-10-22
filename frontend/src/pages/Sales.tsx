@@ -637,19 +637,19 @@ export default function Sales() {
   }
 
   function getPsEstadoBadge(estado: string) {
-    if (estado === 'ACTIVA') return 'bg-blue-100 text-blue-700';
-    if (estado === 'FINALIZADO') return 'bg-green-100 text-green-700';
-    return 'bg-red-100 text-red-700';
+    if (estado === 'ACTIVA') return 'bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400';
+    if (estado === 'FINALIZADO') return 'bg-green-100 dark:bg-emerald-500/15 text-green-700 dark:text-emerald-400';
+    return 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400';
   }
 
   // Tab UI
   function renderTabs() {
     return (
-      <div className="flex gap-1 mb-4 border-b border-gray-200">
+      <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200 dark:border-slate-800">
         {(['ventas', 'paquetes-sesiones', 'aplicaciones'] as Tab[]).map(t => (
           <button key={t} onClick={() => { setTab(t); if (t !== 'ventas') loadPs(); }}
-            className={`px-4 py-2 text-sm font-medium rounded-t-lg cursor-pointer transition-colors ${
-              tab === t ? 'bg-white text-blue-700 border border-b-0 border-gray-200 -mb-px' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+            className={`shrink-0 whitespace-nowrap rounded-t-xl px-4 py-2.5 text-sm font-medium cursor-pointer transition-colors ${
+              tab === t ? 'bg-blue-50 text-blue-700 border-b-2 border-blue-600 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60'
             }`}>
             {t === 'ventas' ? 'Ventas' : t === 'paquetes-sesiones' ? 'Paquetes x Sesiones' : 'Aplicaciones'}
           </button>
@@ -661,15 +661,15 @@ export default function Sales() {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Ventas</h2>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="sc-page-title">Ventas</h2>
         {tab === 'ventas' && (
-          <button onClick={() => { resetCreateModal(); setShowCreate(true); }} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer">
+          <button onClick={() => { resetCreateModal(); setShowCreate(true); }} className="w-fit whitespace-nowrap rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-blue-500 dark:hover:bg-blue-400 cursor-pointer">
             + Nueva Venta
           </button>
         )}
         {tab === 'paquetes-sesiones' && (
-          <button onClick={() => { resetCreatePsModal(); setShowCreatePs(true); }} className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer">
+          <button onClick={() => { resetCreatePsModal(); setShowCreatePs(true); }} className="w-fit whitespace-nowrap rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-blue-500 dark:hover:bg-blue-400 cursor-pointer">
             + Nuevo Paquete x Sesiones
           </button>
         )}
@@ -682,44 +682,44 @@ export default function Sales() {
           {/* Search bar */}
           <div className="flex flex-wrap gap-3 mb-4 items-end">
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Consecutivo</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Consecutivo</label>
               <input type="number" min={1} value={searchCons} onChange={e => setSearchCons(e.target.value)} placeholder="#"
-                className="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-24 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Cliente</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Cliente</label>
               <input type="text" value={searchCliente} onChange={e => setSearchCliente(e.target.value)} placeholder="Nombre o documento"
-                className="w-44 border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-44 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Desde</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Desde</label>
               <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                className="border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <div>
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Hasta</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Hasta</label>
               <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                className="border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
             <button onClick={() => load(searchCons, searchCliente, fechaDesde, fechaHasta)}
-              className="px-4 py-2 rounded-lg bg-gray-700 text-white text-sm font-medium hover:bg-gray-800 cursor-pointer">
+              className="px-4 py-2 rounded-xl bg-slate-700 dark:bg-slate-700 text-white text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-700 cursor-pointer">
               Buscar
             </button>
             <button onClick={() => { setSearchCons(''); setSearchCliente(''); setFechaDesde(''); setFechaHasta(''); load(); }}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-600 text-sm hover:bg-gray-50 cursor-pointer">
+              className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">
               Limpiar
             </button>
           </div>
 
           {/* Table */}
           {loading ? (
-            <p className="text-gray-400 text-sm">Cargando...</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">Cargando...</p>
           ) : sales.length === 0 ? (
-            <p className="text-gray-400 text-sm">No hay ventas registradas.</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">No hay ventas registradas.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <table className="w-full text-sm">
-                <thead className="bg-gray-100 text-gray-600 text-left">
+                <thead className="bg-slate-50 text-slate-500 text-left dark:bg-slate-800/60 dark:text-slate-400">
                   <tr>
                     <th className="px-4 py-3 font-medium">Comprobante</th>
                     <th className="px-4 py-3 font-medium">Fecha</th>
@@ -731,28 +731,28 @@ export default function Sales() {
                     <th className="px-4 py-3 font-medium">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {sales.map(s => (
-                    <tr key={s.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-800 font-medium">#{String(s.consecutivo).padStart(6, '0')}</td>
-                      <td className="px-4 py-3 text-gray-500">{(s.fechaVenta ?? s.createdAt).split('T')[0]}</td>
-                      <td className="px-4 py-3 text-gray-800">
+                    <tr key={s.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                      <td className="px-4 py-3 text-slate-800 dark:text-slate-100 font-medium">#{String(s.consecutivo).padStart(6, '0')}</td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{(s.fechaVenta ?? s.createdAt).split('T')[0]}</td>
+                      <td className="px-4 py-3 text-slate-800 dark:text-slate-100">
                         <div>{getClienteName(s)}</div>
-                        <div className="text-xs text-gray-400">{getClienteDoc(s)}</div>
+                        <div className="text-xs text-slate-400 dark:text-slate-500">{getClienteDoc(s)}</div>
                       </td>
-                      <td className="px-4 py-3 text-gray-800">
+                      <td className="px-4 py-3 text-slate-800 dark:text-slate-100">
                         {s.medicoId ? (() => { const m = terceros.find(t => t.id === s.medicoId); return m ? `${m.nombres} ${m.apellidos}` : s.medicoId; })() : '-'}
                       </td>
-                      <td className="px-4 py-3 text-gray-500">
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
                         {s.details?.map(d => {
                           if (d.packageId) return `${getItemName(d.packageId, 'PACKAGE')} x${d.quantity}`;
                           return `${getItemName(d.productId)} x${d.quantity}`;
                         }).join(', ')}
                       </td>
-                      <td className="px-4 py-3 text-gray-700 font-medium">${s.total.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-slate-700 dark:text-slate-200 font-medium">${s.total.toFixed(2)}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                          s.estado === 'ACTIVA' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                          s.estado === 'ACTIVA' ? 'bg-green-100 dark:bg-emerald-500/15 text-green-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400'
                         }`}>
                           {s.estado === 'ACTIVA' ? 'Activa' : 'Anulada'}
                         </span>
@@ -761,14 +761,14 @@ export default function Sales() {
                         <div className="flex gap-2">
                           <button onClick={() => openEdit(s)} disabled={s.estado !== 'ACTIVA'}
                             className={`text-xs px-2 py-1 rounded border ${
-                              s.estado === 'ACTIVA' ? 'border-blue-300 text-blue-600 hover:bg-blue-50 cursor-pointer' : 'border-gray-200 text-gray-300'
+                              s.estado === 'ACTIVA' ? 'border-blue-300 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 cursor-pointer' : 'border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-600'
                             }`}>Editar</button>
                           <button onClick={() => openCancel(s)} disabled={s.estado !== 'ACTIVA'}
                             className={`text-xs px-2 py-1 rounded border ${
-                              s.estado === 'ACTIVA' ? 'border-red-300 text-red-600 hover:bg-red-50 cursor-pointer' : 'border-gray-200 text-gray-300'
+                              s.estado === 'ACTIVA' ? 'border-red-300 dark:border-red-500/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer' : 'border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-600'
                             }`}>Anular</button>
                           <button onClick={() => openComprobante(s)}
-                            className="text-xs px-2 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50 cursor-pointer">Comprobante</button>
+                            className="text-xs px-2 py-1 rounded border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Comprobante</button>
                         </div>
                       </td>
                     </tr>
@@ -782,23 +782,23 @@ export default function Sales() {
 
       {/* Create Modal */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <form onSubmit={handleCreate} className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 mx-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Nueva Venta</h2>
-            {errors.general && <p className="text-red-500 text-xs mb-3">{errors.general}</p>}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <form onSubmit={handleCreate} className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 mx-4">
+            <h2 className="mb-4 text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Nueva Venta</h2>
+            {errors.general && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{errors.general}</p>}
 
             <div ref={clienteRef} className="relative mb-4">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Cliente</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Cliente</label>
               <input type="text" value={clienteSearch} onChange={e => { setClienteSearch(e.target.value); setSelectedClienteId(''); setShowClienteDropdown(true); }}
                 onFocus={() => setShowClienteDropdown(true)} placeholder="Buscar cliente..." autoComplete="off"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
               {showClienteDropdown && (
-                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-36 overflow-y-auto">
                   {clientes.filter(c => {
                     const name = c.tipoPersona === 'NATURAL' ? `${c.nombres} ${c.apellidos}` : c.razonSocial || '';
                     return name.toLowerCase().includes(clienteSearch.toLowerCase()) || c.numeroDocumento.includes(clienteSearch);
                   }).map(c => (
-                    <li key={c.id} onClick={() => selectCliente(c)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                    <li key={c.id} onClick={() => selectCliente(c)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10">
                       {c.tipoPersona === 'NATURAL' ? `${c.nombres} ${c.apellidos}` : c.razonSocial} - {c.numeroDocumento}
                     </li>
                   ))}
@@ -807,18 +807,18 @@ export default function Sales() {
             </div>
 
             <div ref={medicoRef} className="relative mb-4">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Médico <span className="text-red-500">*</span></label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Médico <span className="text-red-500 dark:text-red-400">*</span></label>
               <input type="text" value={medicoSearch} onChange={e => { setMedicoSearch(e.target.value); setSelectedMedicoId(''); setShowMedicoDropdown(true); }}
                 onFocus={() => setShowMedicoDropdown(true)} placeholder="Buscar médico..." autoComplete="off"
-                className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.medico ? 'border-red-400' : 'border-gray-300'}`} />
-              {errors.medico && <p className="text-xs text-red-500 mt-1">{errors.medico}</p>}
+                className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.medico ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
+              {errors.medico && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.medico}</p>}
               {showMedicoDropdown && (
-                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-36 overflow-y-auto">
                   {medicos.filter(m => {
                     const name = `${m.nombres} ${m.apellidos}`;
                     return name.toLowerCase().includes(medicoSearch.toLowerCase()) || m.numeroDocumento.includes(medicoSearch) || (m.registroProfesional || '').includes(medicoSearch);
                   }).map(m => (
-                    <li key={m.id} onClick={() => selectMedico(m)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                    <li key={m.id} onClick={() => selectMedico(m)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10">
                       {m.nombres} {m.apellidos} - {m.numeroDocumento} {m.registroProfesional ? `(Reg: ${m.registroProfesional})` : ''}
                     </li>
                   ))}
@@ -827,10 +827,10 @@ export default function Sales() {
             </div>
 
             <div className="mb-4">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Fecha de la Venta</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Fecha de la Venta</label>
               <input type="date" value={fechaVenta} onChange={e => setFechaVenta(e.target.value)}
                 max={new Date().toISOString().split('T')[0]}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
 
             <div className="space-y-3">
@@ -840,20 +840,20 @@ export default function Sales() {
                 const selectedPackage = item.packageId ? packages.find(p => p.id === item.packageId) : null;
                 const components = selectedPackage ? getPackageComponents(item.packageId) : [];
                 return (
-                  <div key={idx} className="border border-gray-200 rounded-lg p-3">
+                  <div key={idx} className="border border-slate-200 dark:border-slate-800 rounded-xl p-3">
                     <div className="flex gap-2 mb-2">
                       <button type="button" onClick={() => setItemType(idx, 'PRODUCT')}
-                        className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer ${item.type === 'PRODUCT' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer ${item.type === 'PRODUCT' ? 'bg-slate-900 text-white dark:bg-blue-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                         Producto
                       </button>
                       <button type="button" onClick={() => setItemType(idx, 'PACKAGE')}
-                        className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer ${item.type === 'PACKAGE' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer ${item.type === 'PACKAGE' ? 'bg-slate-900 text-white dark:bg-blue-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                         Paquete
                       </button>
                     </div>
-                    <div className="flex gap-3 items-end">
+                    <div className="flex flex-wrap gap-3 items-end">
                       <div className="flex-1 relative" ref={el => { searchRefs.current[idx] = el; }}>
-                        <label className="text-xs font-medium text-gray-600 mb-1 block">
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">
                           {item.type === 'PRODUCT' ? 'Producto' : 'Paquete'}
                         </label>
                         <input type="text"
@@ -862,53 +862,53 @@ export default function Sales() {
                           onChange={e => updateSearch(idx, e.target.value)}
                           onFocus={() => setOpenDropdown(idx)}
                           autoComplete="off"
-                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-product`] ? 'border-red-400' : 'border-gray-300'}`} />
+                          className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-product`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                         {openDropdown === idx && item.type === 'PRODUCT' && productFiltered.length > 0 && (
-                          <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                             {productFiltered.map(p => (
-                              <li key={p.id} onClick={() => selectProduct(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
+                              <li key={p.id} onClick={() => selectProduct(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                                 <span className="font-medium">{p.codigo}</span>
-                                <span className="text-gray-500 ml-2">{p.nombre}</span>
-                                <span className="text-gray-400 ml-auto">Stock: {p.stockActual}</span>
+                                <span className="text-slate-500 dark:text-slate-400 ml-2">{p.nombre}</span>
+                                <span className="text-slate-400 dark:text-slate-500 ml-auto">Stock: {p.stockActual}</span>
                               </li>
                             ))}
                           </ul>
                         )}
                         {openDropdown === idx && item.type === 'PACKAGE' && packageFiltered.length > 0 && (
-                          <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                             {packageFiltered.map(p => (
-                              <li key={p.id} onClick={() => selectPackage(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
+                              <li key={p.id} onClick={() => selectPackage(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                                 <span className="font-medium">{p.nombre}</span>
-                                <span className="text-gray-400 ml-auto">${p.precio.toFixed(2)}</span>
+                                <span className="text-slate-400 dark:text-slate-500 ml-auto">${p.precio.toFixed(2)}</span>
                               </li>
                             ))}
                           </ul>
                         )}
                       </div>
                       <div className="w-24">
-                        <label className="text-xs font-medium text-gray-600 mb-1 block">Cantidad</label>
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Cantidad</label>
                         <input type="number" min={1} value={item.quantity} onChange={e => setItems(items.map((it, i) => i === idx ? { ...it, quantity: parseInt(e.target.value) || 0 } : it))}
-                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-qty`] ? 'border-red-400' : 'border-gray-300'}`} />
+                          className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-qty`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                       </div>
                       <div className="w-28">
-                        <label className="text-xs font-medium text-gray-600 mb-1 block">Precio Unit.</label>
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Precio Unit.</label>
                         <input type="number" step="0.01" min={0} value={item.unitPrice} onChange={e => setItems(items.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(e.target.value) || 0 } : it))}
-                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-price`] ? 'border-red-400' : 'border-gray-300'}`} />
+                          className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`item-${idx}-price`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                       </div>
                       <div className="w-20 text-right">
-                        <label className="text-xs font-medium text-gray-600 mb-1 block">Subtotal</label>
-                        <p className="text-sm text-gray-800 py-2">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</p>
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Subtotal</label>
+                        <p className="text-sm text-slate-800 dark:text-slate-100 py-2">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</p>
                       </div>
-                      <button type="button" onClick={() => removeItem(idx)} className="text-red-500 hover:text-red-700 text-lg cursor-pointer pb-1">×</button>
+                      <button type="button" onClick={() => removeItem(idx)} className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-lg cursor-pointer pb-1">×</button>
                     </div>
                     {item.type === 'PACKAGE' && components.length > 0 && (
                       <div className="mt-2 ml-1">
-                        <p className="text-xs font-medium text-gray-500 mb-1">Componentes del paquete:</p>
+                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Componentes del paquete:</p>
                         <div className="flex flex-wrap gap-2">
                           {components.map((comp, ci) => {
                             const prod = products.find(p => p.id === comp.productId);
                             return (
-                              <span key={ci} className="text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-600">
+                              <span key={ci} className="text-xs bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-slate-600 dark:text-slate-300">
                                 {prod ? `${prod.nombre}` : comp.productId} x{comp.quantity * item.quantity}
                               </span>
                             );
@@ -920,13 +920,13 @@ export default function Sales() {
                 );
               })}
             </div>
-            <button type="button" onClick={addItem} className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer">+ Agregar producto</button>
+            <button type="button" onClick={addItem} className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium cursor-pointer">+ Agregar producto</button>
             <div className="flex justify-end mt-4 mb-6">
-              <p className="text-lg font-bold text-gray-800">Total: ${createTotal.toFixed(2)}</p>
+              <p className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">Total: ${createTotal.toFixed(2)}</p>
             </div>
             <div className="flex justify-end gap-3">
-              <button type="button" onClick={resetCreateModal} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cancelar</button>
-              <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
+              <button type="button" onClick={resetCreateModal} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cancelar</button>
+              <button type="submit" disabled={saving} className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-blue-500 hover:bg-slate-800 dark:hover:bg-blue-400 disabled:opacity-50 cursor-pointer">
                 {saving ? 'Guardando...' : 'Registrar Venta'}
               </button>
             </div>
@@ -936,23 +936,23 @@ export default function Sales() {
 
       {/* Edit Modal */}
       {showEdit && editingSale && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <form onSubmit={handleEdit} className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 mx-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Editar Venta #{String(editingSale.consecutivo).padStart(6, '0')}</h2>
-            {editErrors.general && <p className="text-red-500 text-xs mb-3">{editErrors.general}</p>}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <form onSubmit={handleEdit} className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 mx-4">
+            <h2 className="mb-4 text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Editar Venta #{String(editingSale.consecutivo).padStart(6, '0')}</h2>
+            {editErrors.general && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{editErrors.general}</p>}
 
             <div ref={editClienteRef} className="relative mb-4">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Cliente</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Cliente</label>
               <input type="text" value={editClienteSearch} onChange={e => { setEditClienteSearch(e.target.value); setEditSelectedClienteId(''); setEditShowClienteDropdown(true); }}
                 onFocus={() => setEditShowClienteDropdown(true)} placeholder="Buscar cliente..." autoComplete="off"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
               {editShowClienteDropdown && (
-                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-36 overflow-y-auto">
                   {clientes.filter(c => {
                     const name = c.tipoPersona === 'NATURAL' ? `${c.nombres} ${c.apellidos}` : c.razonSocial || '';
                     return name.toLowerCase().includes(editClienteSearch.toLowerCase()) || c.numeroDocumento.includes(editClienteSearch);
                   }).map(c => (
-                    <li key={c.id} onClick={() => selectEditCliente(c)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                    <li key={c.id} onClick={() => selectEditCliente(c)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10">
                       {c.tipoPersona === 'NATURAL' ? `${c.nombres} ${c.apellidos}` : c.razonSocial} - {c.numeroDocumento}
                     </li>
                   ))}
@@ -961,18 +961,18 @@ export default function Sales() {
             </div>
 
             <div ref={editMedicoRef} className="relative mb-4">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Médico <span className="text-red-500">*</span></label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Médico <span className="text-red-500 dark:text-red-400">*</span></label>
               <input type="text" value={editMedicoSearch} onChange={e => { setEditMedicoSearch(e.target.value); setEditSelectedMedicoId(''); setEditShowMedicoDropdown(true); }}
                 onFocus={() => setEditShowMedicoDropdown(true)} placeholder="Buscar médico..." autoComplete="off"
-                className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${editErrors.medico ? 'border-red-400' : 'border-gray-300'}`} />
-              {editErrors.medico && <p className="text-xs text-red-500 mt-1">{editErrors.medico}</p>}
+                className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${editErrors.medico ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
+              {editErrors.medico && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{editErrors.medico}</p>}
               {editShowMedicoDropdown && (
-                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-36 overflow-y-auto">
                   {medicos.filter(m => {
                     const name = `${m.nombres} ${m.apellidos}`;
                     return name.toLowerCase().includes(editMedicoSearch.toLowerCase()) || m.numeroDocumento.includes(editMedicoSearch) || (m.registroProfesional || '').includes(editMedicoSearch);
                   }).map(m => (
-                    <li key={m.id} onClick={() => selectEditMedico(m)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                    <li key={m.id} onClick={() => selectEditMedico(m)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10">
                       {m.nombres} {m.apellidos} - {m.numeroDocumento} {m.registroProfesional ? `(Reg: ${m.registroProfesional})` : ''}
                     </li>
                   ))}
@@ -981,10 +981,10 @@ export default function Sales() {
             </div>
 
             <div className="mb-4">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Fecha de la Venta</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Fecha de la Venta</label>
               <input type="date" value={editFechaVenta} onChange={e => setEditFechaVenta(e.target.value)}
                 max={new Date().toISOString().split('T')[0]}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
             </div>
 
             <div className="space-y-3">
@@ -994,20 +994,20 @@ export default function Sales() {
                 const selectedPackage = item.packageId ? packages.find(p => p.id === item.packageId) : null;
                 const components = selectedPackage ? getPackageComponents(item.packageId) : [];
                 return (
-                  <div key={idx} className="border border-gray-200 rounded-lg p-3">
+                  <div key={idx} className="border border-slate-200 dark:border-slate-800 rounded-xl p-3">
                     <div className="flex gap-2 mb-2">
                       <button type="button" onClick={() => setEditItemType(idx, 'PRODUCT')}
-                        className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer ${item.type === 'PRODUCT' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer ${item.type === 'PRODUCT' ? 'bg-slate-900 text-white dark:bg-blue-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                         Producto
                       </button>
                       <button type="button" onClick={() => setEditItemType(idx, 'PACKAGE')}
-                        className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer ${item.type === 'PACKAGE' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                        className={`text-xs px-3 py-1 rounded-full font-medium cursor-pointer ${item.type === 'PACKAGE' ? 'bg-slate-900 text-white dark:bg-blue-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'}`}>
                         Paquete
                       </button>
                     </div>
-                    <div className="flex gap-3 items-end">
+                    <div className="flex flex-wrap gap-3 items-end">
                       <div className="flex-1 relative" ref={el => { editSearchRefs.current[idx] = el; }}>
-                        <label className="text-xs font-medium text-gray-600 mb-1 block">
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">
                           {item.type === 'PRODUCT' ? 'Producto' : 'Paquete'}
                         </label>
                         <input type="text"
@@ -1016,53 +1016,53 @@ export default function Sales() {
                           onChange={e => updateEditSearch(idx, e.target.value)}
                           onFocus={() => setEditOpenDropdown(idx)}
                           autoComplete="off"
-                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${editErrors[`item-${idx}-product`] ? 'border-red-400' : 'border-gray-300'}`} />
+                          className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${editErrors[`item-${idx}-product`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                         {editOpenDropdown === idx && item.type === 'PRODUCT' && productFiltered.length > 0 && (
-                          <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                             {productFiltered.map(p => (
-                              <li key={p.id} onClick={() => selectEditProduct(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
+                              <li key={p.id} onClick={() => selectEditProduct(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                                 <span className="font-medium">{p.codigo}</span>
-                                <span className="text-gray-500 ml-2">{p.nombre}</span>
-                                <span className="text-gray-400 ml-auto">Stock: {p.stockActual}</span>
+                                <span className="text-slate-500 dark:text-slate-400 ml-2">{p.nombre}</span>
+                                <span className="text-slate-400 dark:text-slate-500 ml-auto">Stock: {p.stockActual}</span>
                               </li>
                             ))}
                           </ul>
                         )}
                         {editOpenDropdown === idx && item.type === 'PACKAGE' && packageFiltered.length > 0 && (
-                          <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                          <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                             {packageFiltered.map(p => (
-                              <li key={p.id} onClick={() => selectEditPackage(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
+                              <li key={p.id} onClick={() => selectEditPackage(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                                 <span className="font-medium">{p.nombre}</span>
-                                <span className="text-gray-400 ml-auto">${p.precio.toFixed(2)}</span>
+                                <span className="text-slate-400 dark:text-slate-500 ml-auto">${p.precio.toFixed(2)}</span>
                               </li>
                             ))}
                           </ul>
                         )}
                       </div>
                       <div className="w-24">
-                        <label className="text-xs font-medium text-gray-600 mb-1 block">Cantidad</label>
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Cantidad</label>
                         <input type="number" min={1} value={item.quantity} onChange={e => setEditItems(editItems.map((it, i) => i === idx ? { ...it, quantity: parseInt(e.target.value) || 0 } : it))}
-                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${editErrors[`item-${idx}-qty`] ? 'border-red-400' : 'border-gray-300'}`} />
+                          className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${editErrors[`item-${idx}-qty`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                       </div>
                       <div className="w-28">
-                        <label className="text-xs font-medium text-gray-600 mb-1 block">Precio Unit.</label>
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Precio Unit.</label>
                         <input type="number" step="0.01" min={0} value={item.unitPrice} onChange={e => setEditItems(editItems.map((it, i) => i === idx ? { ...it, unitPrice: parseFloat(e.target.value) || 0 } : it))}
-                          className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${editErrors[`item-${idx}-price`] ? 'border-red-400' : 'border-gray-300'}`} />
+                          className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${editErrors[`item-${idx}-price`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
                       </div>
                       <div className="w-20 text-right">
-                        <label className="text-xs font-medium text-gray-600 mb-1 block">Subtotal</label>
-                        <p className="text-sm text-gray-800 py-2">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</p>
+                        <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Subtotal</label>
+                        <p className="text-sm text-slate-800 dark:text-slate-100 py-2">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</p>
                       </div>
-                      <button type="button" onClick={() => removeEditItem(idx)} className="text-red-500 hover:text-red-700 text-lg cursor-pointer pb-1">×</button>
+                      <button type="button" onClick={() => removeEditItem(idx)} className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-lg cursor-pointer pb-1">×</button>
                     </div>
                     {item.type === 'PACKAGE' && components.length > 0 && (
                       <div className="mt-2 ml-1">
-                        <p className="text-xs font-medium text-gray-500 mb-1">Componentes del paquete:</p>
+                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Componentes del paquete:</p>
                         <div className="flex flex-wrap gap-2">
                           {components.map((comp, ci) => {
                             const prod = products.find(p => p.id === comp.productId);
                             return (
-                              <span key={ci} className="text-xs bg-gray-50 border border-gray-200 rounded px-2 py-1 text-gray-600">
+                              <span key={ci} className="text-xs bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded px-2 py-1 text-slate-600 dark:text-slate-300">
                                 {prod ? `${prod.nombre}` : comp.productId} x{comp.quantity * item.quantity}
                               </span>
                             );
@@ -1074,11 +1074,11 @@ export default function Sales() {
                 );
               })}
             </div>
-            <button type="button" onClick={addEditItem} className="mt-3 text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer">+ Agregar producto</button>
+            <button type="button" onClick={addEditItem} className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium cursor-pointer">+ Agregar producto</button>
 
             <div className="flex justify-end gap-3 mt-6">
-              <button type="button" onClick={() => setShowEdit(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cancelar</button>
-              <button type="submit" disabled={editSaving} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
+              <button type="button" onClick={() => setShowEdit(false)} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cancelar</button>
+              <button type="submit" disabled={editSaving} className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-blue-500 hover:bg-slate-800 dark:hover:bg-blue-400 disabled:opacity-50 cursor-pointer">
                 {editSaving ? 'Guardando...' : 'Guardar Cambios'}
               </button>
             </div>
@@ -1088,19 +1088,19 @@ export default function Sales() {
 
       {/* Cancel Modal */}
       {showCancel && cancellingSale && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 mx-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Anular Venta #{String(cancellingSale.consecutivo).padStart(6, '0')}</h2>
-            <p className="text-sm text-gray-500 mb-4">Esta acción devolverá el stock de todos los productos. No se puede deshacer.</p>
-            {cancelErrors && <p className="text-red-500 text-xs mb-3">{cancelErrors}</p>}
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Motivo de anulación</label>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <div className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-md p-6 mx-4">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white mb-2">Anular Venta #{String(cancellingSale.consecutivo).padStart(6, '0')}</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Esta acción devolverá el stock de todos los productos. No se puede deshacer.</p>
+            {cancelErrors && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{cancelErrors}</p>}
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Motivo de anulación</label>
             <textarea value={cancelMotivo} onChange={e => setCancelMotivo(e.target.value)} rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-400 mb-4"
+              className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-400 mb-4"
               placeholder="Indique el motivo..." />
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowCancel(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cancelar</button>
+              <button onClick={() => setShowCancel(false)} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cancelar</button>
               <button onClick={handleCancel} disabled={cancelSaving || !cancelMotivo.trim()}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 cursor-pointer">
+                className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 cursor-pointer">
                 {cancelSaving ? 'Anulando...' : 'Anular Venta'}
               </button>
             </div>
@@ -1110,36 +1110,36 @@ export default function Sales() {
 
       {/* Comprobante Modal */}
       {showComprobante && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 mx-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <div className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 mx-4">
             {comprobanteLoading ? (
-              <p className="text-gray-400 text-sm">Cargando comprobante...</p>
+              <p className="text-slate-400 dark:text-slate-500 text-sm">Cargando comprobante...</p>
             ) : comprobanteData ? (
               <div id="comprobante-content">
-                <div className="text-center mb-6 pb-4 border-b border-gray-200">
-                  <h2 className="text-lg font-bold text-gray-800">SueroControl</h2>
-                  <p className="text-xs text-gray-400">Sistema de Inventario</p>
-                  <h3 className="text-xl font-bold text-gray-800 mt-2">Comprobante de Venta</h3>
-                  <p className="text-sm text-gray-600 font-medium">{comprobanteData.comprobante}</p>
+                <div className="text-center mb-6 pb-4 border-b border-slate-200 dark:border-slate-800">
+                  <h2 className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">SueroControl</h2>
+                  <p className="text-xs text-slate-400 dark:text-slate-500">Sistema de Inventario</p>
+                  <h3 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white mt-2">Comprobante de Venta</h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">{comprobanteData.comprobante}</p>
                 </div>
 
                 <div className="text-sm space-y-1 mb-4">
-                  <p><span className="text-gray-500">Fecha:</span> {new Date(comprobanteData.fecha).toLocaleString()}</p>
+                  <p><span className="text-slate-500 dark:text-slate-400">Fecha:</span> {new Date(comprobanteData.fecha).toLocaleString()}</p>
                   {comprobanteData.estado === 'ANULADA' && (
-                    <p><span className="text-red-600 font-medium">ANULADA</span> {comprobanteData.anuladaMotivo && `- ${comprobanteData.anuladaMotivo}`}</p>
+                    <p><span className="text-red-600 dark:text-red-400 font-medium">ANULADA</span> {comprobanteData.anuladaMotivo && `- ${comprobanteData.anuladaMotivo}`}</p>
                   )}
                   {comprobanteData.cliente && (
                     <>
-                      <p><span className="text-gray-500">Cliente:</span> {comprobanteData.cliente.nombre}</p>
-                      <p><span className="text-gray-500">Documento:</span> {comprobanteData.cliente.documento}</p>
-                      {comprobanteData.cliente.direccion && <p><span className="text-gray-500">Dirección:</span> {comprobanteData.cliente.direccion}</p>}
-                      {comprobanteData.cliente.telefono && <p><span className="text-gray-500">Teléfono:</span> {comprobanteData.cliente.telefono}</p>}
+                      <p><span className="text-slate-500 dark:text-slate-400">Cliente:</span> {comprobanteData.cliente.nombre}</p>
+                      <p><span className="text-slate-500 dark:text-slate-400">Documento:</span> {comprobanteData.cliente.documento}</p>
+                      {comprobanteData.cliente.direccion && <p><span className="text-slate-500 dark:text-slate-400">Dirección:</span> {comprobanteData.cliente.direccion}</p>}
+                      {comprobanteData.cliente.telefono && <p><span className="text-slate-500 dark:text-slate-400">Teléfono:</span> {comprobanteData.cliente.telefono}</p>}
                     </>
                   )}
                 </div>
 
                 <table className="w-full text-sm mb-4">
-                  <thead className="bg-gray-100 text-gray-600">
+                  <thead className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                     <tr>
                       <th className="text-left px-2 py-2">Producto</th>
                       <th className="text-center px-2 py-2">Cant.</th>
@@ -1147,7 +1147,7 @@ export default function Sales() {
                       <th className="text-right px-2 py-2">Subtotal</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {comprobanteData.items.map((item, i) => (
                       <tr key={i}>
                         <td className="px-2 py-2">{item.producto}</td>
@@ -1158,18 +1158,18 @@ export default function Sales() {
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr className="font-bold text-gray-800">
+                    <tr className="font-bold text-slate-800 dark:text-slate-100">
                       <td colSpan={3} className="text-right px-2 py-3">Total:</td>
                       <td className="text-right px-2 py-3">${comprobanteData.total.toFixed(2)}</td>
                     </tr>
                   </tfoot>
                 </table>
 
-                <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-gray-200">
+                <div className="flex justify-end gap-3 mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
                   <button onClick={() => window.print()}
-                    className="px-4 py-2 rounded-lg bg-gray-700 text-white text-sm hover:bg-gray-800 cursor-pointer">Imprimir</button>
+                    className="px-4 py-2 rounded-xl bg-slate-700 dark:bg-slate-700 text-white text-sm hover:bg-slate-800 dark:hover:bg-slate-700 cursor-pointer">Imprimir</button>
                   <button onClick={() => setShowComprobante(false)}
-                    className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cerrar</button>
+                    className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cerrar</button>
                 </div>
               </div>
             ) : null}
@@ -1181,13 +1181,13 @@ export default function Sales() {
       {tab === 'paquetes-sesiones' && (
         <div>
           {psLoading ? (
-            <p className="text-gray-400 text-sm">Cargando...</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">Cargando...</p>
           ) : packageSessions.length === 0 ? (
-            <p className="text-gray-400 text-sm">No hay paquetes por sesiones registrados.</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">No hay paquetes por sesiones registrados.</p>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-gray-200">
+            <div className="overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <table className="w-full text-sm">
-                <thead className="bg-gray-100 text-gray-600 text-left">
+                <thead className="bg-slate-50 text-slate-500 text-left dark:bg-slate-800/60 dark:text-slate-400">
                   <tr>
                     <th className="px-4 py-3 font-medium">Paciente</th>
                     <th className="px-4 py-3 font-medium">Médico</th>
@@ -1201,31 +1201,31 @@ export default function Sales() {
                     <th className="px-4 py-3 font-medium">Acciones</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {packageSessions.map(ps => (
-                    <tr key={ps.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-800">{getPsPatientName(ps)}</td>
-                      <td className="px-4 py-3 text-gray-800">{getPsMedicoName(ps)}</td>
-                      <td className="px-4 py-3 text-gray-600">{getPsPackageName(ps)}</td>
-                      <td className="px-4 py-3 text-gray-800 font-medium">{ps.cantidadSesiones}</td>
-                      <td className="px-4 py-3 text-gray-600">{ps.sesionesConsumidas}</td>
-                      <td className="px-4 py-3 text-gray-800 font-medium">{ps.sesionesPendientes}</td>
-                      <td className="px-4 py-3 text-gray-700 font-medium">${ps.totalPagado.toFixed(2)}</td>
+                    <tr key={ps.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/60">
+                      <td className="px-4 py-3 text-slate-800 dark:text-slate-100">{getPsPatientName(ps)}</td>
+                      <td className="px-4 py-3 text-slate-800 dark:text-slate-100">{getPsMedicoName(ps)}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{getPsPackageName(ps)}</td>
+                      <td className="px-4 py-3 text-slate-800 dark:text-slate-100 font-medium">{ps.cantidadSesiones}</td>
+                      <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ps.sesionesConsumidas}</td>
+                      <td className="px-4 py-3 text-slate-800 dark:text-slate-100 font-medium">{ps.sesionesPendientes}</td>
+                      <td className="px-4 py-3 text-slate-700 dark:text-slate-200 font-medium">${ps.totalPagado.toFixed(2)}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${getPsEstadoBadge(ps.estado)}`}>
                           {ps.estado === 'FINALIZADO' ? 'Finalizado' : ps.estado === 'ACTIVA' ? 'Activa' : 'Cancelada'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-500">{new Date(ps.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{new Date(ps.createdAt).toLocaleDateString()}</td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
                           <button onClick={() => openApply(ps)} disabled={ps.estado !== 'ACTIVA' || ps.sesionesPendientes === 0}
                             className={`text-xs px-2 py-1 rounded border ${
-                              ps.estado === 'ACTIVA' && ps.sesionesPendientes > 0 ? 'border-green-300 text-green-600 hover:bg-green-50 cursor-pointer' : 'border-gray-200 text-gray-300'
+                              ps.estado === 'ACTIVA' && ps.sesionesPendientes > 0 ? 'border-green-300 dark:border-emerald-500/40 text-green-600 dark:text-emerald-400 hover:bg-green-50 dark:hover:bg-emerald-500/10 cursor-pointer' : 'border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-600'
                             }`}>Aplicar</button>
                           <button onClick={() => openCancelPs(ps)} disabled={ps.estado !== 'ACTIVA'}
                             className={`text-xs px-2 py-1 rounded border ${
-                              ps.estado === 'ACTIVA' ? 'border-red-300 text-red-600 hover:bg-red-50 cursor-pointer' : 'border-gray-200 text-gray-300'
+                              ps.estado === 'ACTIVA' ? 'border-red-300 dark:border-red-500/40 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 cursor-pointer' : 'border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-600'
                             }`}>Cancelar</button>
                         </div>
                       </td>
@@ -1242,36 +1242,36 @@ export default function Sales() {
       {tab === 'aplicaciones' && (
         <div>
           {psLoading ? (
-            <p className="text-gray-400 text-sm">Cargando...</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">Cargando...</p>
           ) : packageSessions.length === 0 ? (
-            <p className="text-gray-400 text-sm">No hay aplicaciones registradas.</p>
+            <p className="text-slate-400 dark:text-slate-500 text-sm">No hay aplicaciones registradas.</p>
           ) : (
             <div className="space-y-4">
               {packageSessions.filter(ps => ps.applications && ps.applications.length > 0).map(ps => (
-                <div key={ps.id} className="border border-gray-200 rounded-xl p-4">
+                <div key={ps.id} className="border border-slate-200 dark:border-slate-800 rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div>
-                      <span className="text-sm font-semibold text-gray-800">{getPsPatientName(ps)}</span>
-                      <span className="text-xs text-gray-400 ml-2">- {getPsPackageName(ps)}</span>
+                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{getPsPatientName(ps)}</span>
+                      <span className="text-xs text-slate-400 dark:text-slate-500 ml-2">- {getPsPackageName(ps)}</span>
                     </div>
                     <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${getPsEstadoBadge(ps.estado)}`}>
                       {ps.estado === 'FINALIZADO' ? 'Finalizado' : ps.estado === 'ACTIVA' ? 'Activa' : 'Cancelada'}
                     </span>
                   </div>
                   <table className="w-full text-sm">
-                    <thead className="bg-gray-50 text-gray-500 text-left">
+                    <thead className="bg-slate-50 text-slate-500 text-left dark:bg-slate-800/40 dark:text-slate-400">
                       <tr>
                         <th className="px-3 py-2 font-medium"># Sesión</th>
                         <th className="px-3 py-2 font-medium">Fecha</th>
                         <th className="px-3 py-2 font-medium">Observaciones</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {(ps.applications || []).map(app => (
                         <tr key={app.id}>
-                          <td className="px-3 py-2 text-gray-800 font-medium">{app.sesionNumero}</td>
-                          <td className="px-3 py-2 text-gray-500">{new Date(app.fechaAplicacion).toLocaleString()}</td>
-                          <td className="px-3 py-2 text-gray-500">{app.observaciones || '-'}</td>
+                          <td className="px-3 py-2 text-slate-800 dark:text-slate-100 font-medium">{app.sesionNumero}</td>
+                          <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{new Date(app.fechaAplicacion).toLocaleString()}</td>
+                          <td className="px-3 py-2 text-slate-500 dark:text-slate-400">{app.observaciones || '-'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -1279,7 +1279,7 @@ export default function Sales() {
                 </div>
               ))}
               {packageSessions.filter(ps => ps.applications && ps.applications.length > 0).length === 0 && (
-                <p className="text-gray-400 text-sm">No hay aplicaciones registradas.</p>
+                <p className="text-slate-400 dark:text-slate-500 text-sm">No hay aplicaciones registradas.</p>
               )}
             </div>
           )}
@@ -1288,23 +1288,23 @@ export default function Sales() {
 
       {/* Create PackageSession Modal */}
       {showCreatePs && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <form onSubmit={handleCreatePs} className="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 mx-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Nuevo Paquete x Sesiones</h2>
-            {psErrors.general && <p className="text-red-500 text-xs mb-3">{psErrors.general}</p>}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <form onSubmit={handleCreatePs} className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 mx-4">
+            <h2 className="mb-4 text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Nuevo Paquete x Sesiones</h2>
+            {psErrors.general && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{psErrors.general}</p>}
 
             <div ref={psPatientRef} className="relative mb-4">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Paciente</label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Paciente</label>
               <input type="text" value={psPatientSearch} onChange={e => { setPsPatientSearch(e.target.value); setPsSelectedPatientId(''); setPsShowPatientDropdown(true); }}
                 onFocus={() => setPsShowPatientDropdown(true)} placeholder="Buscar paciente..." autoComplete="off"
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+                className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
               {psShowPatientDropdown && (
-                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-36 overflow-y-auto">
                   {clientes.filter(c => {
                     const name = c.tipoPersona === 'NATURAL' ? `${c.nombres} ${c.apellidos}` : c.razonSocial || '';
                     return name.toLowerCase().includes(psPatientSearch.toLowerCase()) || c.numeroDocumento.includes(psPatientSearch);
                   }).map(c => (
-                    <li key={c.id} onClick={() => selectPsPatient(c)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                    <li key={c.id} onClick={() => selectPsPatient(c)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10">
                       {c.tipoPersona === 'NATURAL' ? `${c.nombres} ${c.apellidos}` : c.razonSocial} - {c.numeroDocumento}
                     </li>
                   ))}
@@ -1313,18 +1313,18 @@ export default function Sales() {
             </div>
 
             <div ref={psMedicoRef} className="relative mb-4">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Médico <span className="text-red-500">*</span></label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Médico <span className="text-red-500 dark:text-red-400">*</span></label>
               <input type="text" value={psMedicoSearch} onChange={e => { setPsMedicoSearch(e.target.value); setPsSelectedMedicoId(''); setPsShowMedicoDropdown(true); }}
                 onFocus={() => setPsShowMedicoDropdown(true)} placeholder="Buscar médico..." autoComplete="off"
-                className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${psErrors.medico ? 'border-red-400' : 'border-gray-300'}`} />
-              {psErrors.medico && <p className="text-xs text-red-500 mt-1">{psErrors.medico}</p>}
+                className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${psErrors.medico ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
+              {psErrors.medico && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{psErrors.medico}</p>}
               {psShowMedicoDropdown && (
-                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-36 overflow-y-auto">
+                <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-36 overflow-y-auto">
                   {medicos.filter(m => {
                     const name = `${m.nombres} ${m.apellidos}`;
                     return name.toLowerCase().includes(psMedicoSearch.toLowerCase()) || m.numeroDocumento.includes(psMedicoSearch) || (m.registroProfesional || '').includes(psMedicoSearch);
                   }).map(m => (
-                    <li key={m.id} onClick={() => selectPsMedico(m)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50">
+                    <li key={m.id} onClick={() => selectPsMedico(m)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10">
                       {m.nombres} {m.apellidos} - {m.numeroDocumento} {m.registroProfesional ? `(Reg: ${m.registroProfesional})` : ''}
                     </li>
                   ))}
@@ -1333,35 +1333,35 @@ export default function Sales() {
             </div>
 
             <div ref={psPackageRef} className="relative mb-4">
-              <label className="text-xs font-medium text-gray-600 mb-1 block">Paquete <span className="text-red-500">*</span></label>
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Paquete <span className="text-red-500 dark:text-red-400">*</span></label>
               <input type="text" value={psPackageSearch} onChange={e => { setPsPackageSearch(e.target.value); setPsSelectedPackageId(''); setPsShowPackageDropdown(true); }}
                 onFocus={() => setPsShowPackageDropdown(true)} placeholder="Buscar paquete..." autoComplete="off"
-                className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${psErrors.package ? 'border-red-400' : 'border-gray-300'}`} />
-              {psErrors.package && <p className="text-xs text-red-500 mt-1">{psErrors.package}</p>}
+                className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${psErrors.package ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
+              {psErrors.package && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{psErrors.package}</p>}
               {psShowPackageDropdown && (
-                <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                   {packages.filter(p => p.activo && p.nombre.toLowerCase().includes(psPackageSearch.toLowerCase())).map(p => (
-                    <li key={p.id} onClick={() => selectPsPackage(p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
+                    <li key={p.id} onClick={() => selectPsPackage(p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                       <span className="font-medium">{p.nombre}</span>
-                      <span className="text-gray-400 ml-auto">${p.precio.toFixed(2)}</span>
+                      <span className="text-slate-400 dark:text-slate-500 ml-auto">${p.precio.toFixed(2)}</span>
                     </li>
                   ))}
                 </ul>
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2">
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Número de Sesiones <span className="text-red-500">*</span></label>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Número de Sesiones <span className="text-red-500 dark:text-red-400">*</span></label>
                 <input type="number" min={1} value={psSessions} onChange={e => setPsSessions(parseInt(e.target.value) || 0)}
-                  className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${psErrors.sessions ? 'border-red-400' : 'border-gray-300'}`} />
-                {psErrors.sessions && <p className="text-xs text-red-500 mt-1">{psErrors.sessions}</p>}
+                  className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${psErrors.sessions ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
+                {psErrors.sessions && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{psErrors.sessions}</p>}
               </div>
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1 block">Descuento (%)</label>
+                <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Descuento (%)</label>
                 <input type="number" min={0} max={100} value={psDiscount} onChange={e => setPsDiscount(parseFloat(e.target.value) || 0)}
-                  className={`w-full border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${psErrors.discount ? 'border-red-400' : 'border-gray-300'}`} />
-                {psErrors.discount && <p className="text-xs text-red-500 mt-1">{psErrors.discount}</p>}
+                  className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${psErrors.discount ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
+                {psErrors.discount && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{psErrors.discount}</p>}
               </div>
             </div>
 
@@ -1372,30 +1372,30 @@ export default function Sales() {
               const descuentoValor = subtotal * (psDiscount / 100);
               const total = subtotal - descuentoValor;
               return (
-                <div className="bg-gray-50 rounded-lg p-4 mb-4 space-y-1 text-sm">
+                <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4 mb-4 space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Precio unitario:</span>
-                    <span className="text-gray-800">${pkg.precio.toFixed(2)}</span>
+                    <span className="text-slate-500 dark:text-slate-400">Precio unitario:</span>
+                    <span className="text-slate-800 dark:text-slate-100">${pkg.precio.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Subtotal:</span>
-                    <span className="text-gray-800">${subtotal.toFixed(2)}</span>
+                    <span className="text-slate-500 dark:text-slate-400">Subtotal:</span>
+                    <span className="text-slate-800 dark:text-slate-100">${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Descuento ({psDiscount}%):</span>
-                    <span className="text-red-600">-${descuentoValor.toFixed(2)}</span>
+                    <span className="text-slate-500 dark:text-slate-400">Descuento ({psDiscount}%):</span>
+                    <span className="text-red-600 dark:text-red-400">-${descuentoValor.toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between font-bold text-base pt-2 border-t border-gray-200">
-                    <span className="text-gray-700">Total a pagar:</span>
-                    <span className="text-gray-900">${total.toFixed(2)}</span>
+                  <div className="flex justify-between font-bold text-base pt-2 border-t border-slate-200 dark:border-slate-800">
+                    <span className="text-slate-700 dark:text-slate-200">Total a pagar:</span>
+                    <span className="text-slate-900 dark:text-white">${total.toFixed(2)}</span>
                   </div>
                 </div>
               );
             })()}
 
             <div className="flex justify-end gap-3">
-              <button type="button" onClick={resetCreatePsModal} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cancelar</button>
-              <button type="submit" disabled={psSaving} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
+              <button type="button" onClick={resetCreatePsModal} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cancelar</button>
+              <button type="submit" disabled={psSaving} className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-blue-500 hover:bg-slate-800 dark:hover:bg-blue-400 disabled:opacity-50 cursor-pointer">
                 {psSaving ? 'Guardando...' : 'Registrar'}
               </button>
             </div>
@@ -1405,23 +1405,23 @@ export default function Sales() {
 
       {/* Apply Session Modal */}
       {showApply && applyingPs && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 mx-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Aplicar Sesión</h2>
-            <p className="text-sm text-gray-500 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <div className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-md p-6 mx-4">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white mb-2">Aplicar Sesión</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
               {getPsPatientName(applyingPs)} - {getPsPackageName(applyingPs)}
               <br />
               Sesión {applyingPs.sesionesConsumidas + 1} de {applyingPs.cantidadSesiones}
             </p>
-            {applyError && <p className="text-red-500 text-xs mb-3">{applyError}</p>}
-            <label className="text-xs font-medium text-gray-600 mb-1 block">Observaciones (opcional)</label>
+            {applyError && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{applyError}</p>}
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Observaciones (opcional)</label>
             <textarea value={applyObservaciones} onChange={e => setApplyObservaciones(e.target.value)} rows={3}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 mb-4"
+              className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 mb-4"
               placeholder="Notas sobre la aplicación..." />
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowApply(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cancelar</button>
+              <button onClick={() => setShowApply(false)} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cancelar</button>
               <button onClick={handleApply} disabled={applySaving}
-                className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 cursor-pointer">
+                className="px-4 py-2 rounded-xl bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 cursor-pointer">
                 {applySaving ? 'Aplicando...' : 'Aplicar Sesión'}
               </button>
             </div>
@@ -1431,28 +1431,28 @@ export default function Sales() {
 
       {/* Cancel PackageSession Modal */}
       {showCancelPs && cancellingPs && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 mx-4">
-            <h2 className="text-xl font-bold text-gray-800 mb-2">Cancelar Paquete x Sesiones</h2>
-            <p className="text-sm text-gray-500 mb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <div className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-md p-6 mx-4">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white mb-2">Cancelar Paquete x Sesiones</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
               {getPsPatientName(cancellingPs)} - {getPsPackageName(cancellingPs)}
             </p>
-            {cancelPsError && <p className="text-red-500 text-xs mb-3">{cancelPsError}</p>}
+            {cancelPsError && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{cancelPsError}</p>}
             {cancellingPs.sesionesConsumidas > 0 ? (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
-                <p className="text-sm text-yellow-800">
+              <div className="bg-yellow-50 dark:bg-amber-500/10 border border-yellow-200 dark:border-amber-500/30 rounded-xl p-3 mb-4">
+                <p className="text-sm text-yellow-800 dark:text-amber-200">
                   Este Paquete x Sesiones tiene {cancellingPs.sesionesConsumidas} sesión(es) aplicada(s).
                   Requiere un proceso administrativo especial. No se puede cancelar directamente.
                 </p>
               </div>
             ) : (
-              <p className="text-sm text-gray-500 mb-4">¿Está seguro de cancelar este Paquete x Sesiones? Esta acción no se puede deshacer.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">¿Está seguro de cancelar este Paquete x Sesiones? Esta acción no se puede deshacer.</p>
             )}
             <div className="flex justify-end gap-3">
-              <button onClick={() => setShowCancelPs(false)} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">Cerrar</button>
+              <button onClick={() => setShowCancelPs(false)} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cerrar</button>
               {cancellingPs.sesionesConsumidas === 0 && (
                 <button onClick={handleCancelPs} disabled={cancelPsSaving}
-                  className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 cursor-pointer">
+                  className="px-4 py-2 rounded-xl bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 cursor-pointer">
                   {cancelPsSaving ? 'Cancelando...' : 'Cancelar'}
                 </button>
               )}

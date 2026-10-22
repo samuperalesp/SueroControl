@@ -132,16 +132,16 @@ export default function TransferModal({ onClose, onTransferred }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 mx-4">
-        <h2 className="text-xl font-bold mb-1 text-gray-800">Trasladar stock</h2>
-        <p className="text-sm text-gray-500 mb-4">Mueve inventario entre almacenes. No es una venta.</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+      <form onSubmit={handleSubmit} className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 mx-4">
+        <h2 className="mb-1 text-lg font-semibold tracking-tight text-slate-900 dark:text-white">Trasladar stock</h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Mueve inventario entre almacenes. No es una venta.</p>
 
-        {errors.general && <p className="text-red-500 text-xs mb-3">{errors.general}</p>}
+        {errors.general && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{errors.general}</p>}
 
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-3">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Almacén origen</label>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Almacén origen</label>
             <select
               value={origenId}
               onChange={e => {
@@ -149,43 +149,43 @@ export default function TransferModal({ onClose, onTransferred }: Props) {
                 setOrigenId(v);
                 setDestinoId(d => (d === v ? '' : d));
               }}
-              className={`border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.origen ? 'border-red-400' : 'border-gray-300'}`}
+              className={`border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.origen ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`}
             >
               {activeWarehouses.map(w => (
                 <option key={w.id} value={w.id}>{w.nombre}</option>
               ))}
             </select>
-            {errors.origen && <span className="text-xs text-red-500">{errors.origen}</span>}
+            {errors.origen && <span className="text-xs text-red-500 dark:text-red-400">{errors.origen}</span>}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Almacén destino</label>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Almacén destino</label>
             <select
               value={destinoId}
               onChange={e => setDestinoId(e.target.value)}
-              className={`border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.destino ? 'border-red-400' : 'border-gray-300'}`}
+              className={`border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.destino ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`}
             >
               {activeWarehouses.filter(w => w.id !== origenId).map(w => (
                 <option key={w.id} value={w.id}>{w.nombre}</option>
               ))}
             </select>
-            {errors.destino && <span className="text-xs text-red-500">{errors.destino}</span>}
+            {errors.destino && <span className="text-xs text-red-500 dark:text-red-400">{errors.destino}</span>}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Fecha del traslado</label>
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300">Fecha del traslado</label>
             <input
               type="date"
               value={fecha}
               max={todayISO()}
               onChange={e => setFecha(e.target.value)}
-              className={`border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.fecha ? 'border-red-400' : 'border-gray-300'}`}
+              className={`border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors.fecha ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`}
             />
-            {errors.fecha && <span className="text-xs text-red-500">{errors.fecha}</span>}
+            {errors.fecha && <span className="text-xs text-red-500 dark:text-red-400">{errors.fecha}</span>}
           </div>
         </div>
 
-        <div className="text-xs font-medium text-gray-600 mb-2">Productos</div>
+        <div className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">Productos</div>
 
         <div ref={searchRef} className="relative mb-3">
           <input
@@ -195,17 +195,17 @@ export default function TransferModal({ onClose, onTransferred }: Props) {
             onFocus={() => setOpenDropdown(true)}
             placeholder="Buscar producto por nombre o código..."
             autoComplete="off"
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400"
           />
-          {searchMsg && <p className="text-xs text-amber-600 mt-1">{searchMsg}</p>}
+          {searchMsg && <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">{searchMsg}</p>}
           {openDropdown && filteredProducts.length > 0 && (
-            <ul className="absolute z-10 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+            <ul className="absolute z-10 mt-1 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg max-h-48 overflow-y-auto">
               {filteredProducts.map(p => (
                 <li key={p.id} onClick={() => addProduct(p)}
-                  className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 flex justify-between">
+                  className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                   <span className="font-medium">{p.codigo}</span>
-                  <span className="text-gray-500 ml-2">{p.nombre}</span>
-                  <span className="text-gray-400 ml-auto">Stock: {p.stockActual}</span>
+                  <span className="text-slate-500 dark:text-slate-400 ml-2">{p.nombre}</span>
+                  <span className="text-slate-400 dark:text-slate-500 ml-auto">Stock: {p.stockActual}</span>
                 </li>
               ))}
             </ul>
@@ -213,9 +213,9 @@ export default function TransferModal({ onClose, onTransferred }: Props) {
         </div>
 
         {lines.length > 0 && (
-          <div className="overflow-x-auto rounded-lg border border-gray-200 mb-3">
+          <div className="overflow-x-auto rounded-xl border border-slate-200/80 dark:border-slate-800 mb-3">
             <table className="w-full text-sm">
-              <thead className="bg-gray-100 text-gray-600 text-left">
+              <thead className="bg-slate-50 text-slate-500 text-left dark:bg-slate-800/60 dark:text-slate-400">
                 <tr>
                   <th className="px-4 py-2 font-medium">Producto</th>
                   <th className="px-4 py-2 font-medium">Stock</th>
@@ -223,17 +223,17 @@ export default function TransferModal({ onClose, onTransferred }: Props) {
                   <th className="px-4 py-2 font-medium">Acción</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {lines.map((l, idx) => {
                   const p = products.find(pr => pr.id === l.productId);
                   const stock = stockDe(l.productId);
                   return (
                     <tr key={l.productId}>
                       <td className="px-4 py-2">
-                        <p className="font-medium text-gray-800">{p?.nombre || l.productId}</p>
-                        {p && <p className="text-xs text-gray-400">{p.codigo}</p>}
+                        <p className="font-medium text-slate-800 dark:text-slate-100">{p?.nombre || l.productId}</p>
+                        {p && <p className="text-xs text-slate-400 dark:text-slate-500">{p.codigo}</p>}
                       </td>
-                      <td className="px-4 py-2 text-gray-600">{stock}</td>
+                      <td className="px-4 py-2 text-slate-600 dark:text-slate-300">{stock}</td>
                       <td className="px-4 py-2 w-28">
                         <input
                           type="number"
@@ -241,13 +241,13 @@ export default function TransferModal({ onClose, onTransferred }: Props) {
                           max={stock || undefined}
                           value={l.cantidad}
                           onChange={e => updateCantidad(idx, parseInt(e.target.value) || 0)}
-                          className={`border rounded-lg px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`linea-${idx}`] ? 'border-red-400' : 'border-gray-300'}`}
+                          className={`border rounded-xl px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${errors[`linea-${idx}`] ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`}
                         />
-                        {errors[`linea-${idx}`] && <p className="text-xs text-red-500">{errors[`linea-${idx}`]}</p>}
+                        {errors[`linea-${idx}`] && <p className="text-xs text-red-500 dark:text-red-400">{errors[`linea-${idx}`]}</p>}
                       </td>
                       <td className="px-4 py-2">
                         <button type="button" onClick={() => removeLine(idx)}
-                          className="text-red-500 hover:text-red-700 text-lg cursor-pointer" title="Quitar">🗑</button>
+                          className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-lg cursor-pointer" title="Quitar">🗑</button>
                       </td>
                     </tr>
                   );
@@ -258,14 +258,14 @@ export default function TransferModal({ onClose, onTransferred }: Props) {
         )}
 
         <button type="button" onClick={() => searchRef.current?.querySelector('input')?.focus()}
-          className="text-sm text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
+          className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium cursor-pointer">
           + Agregar producto
         </button>
-        {errors.lineas && <p className="text-xs text-red-500 mt-1">{errors.lineas}</p>}
+        {errors.lineas && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{errors.lineas}</p>}
 
         {lines.length > 0 && origen && destino && (
-          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 text-sm">
-            <p className="text-gray-700">
+          <div className="mt-4 bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl px-4 py-3 text-sm">
+            <p className="text-slate-700 dark:text-slate-200">
               Resumen: {lines.length} producto{lines.length > 1 ? 's' : ''} · {lines.reduce((s, l) => s + l.cantidad, 0)} unidades
               desde <span className="font-medium">{origen.nombre}</span> hacia <span className="font-medium">{destino.nombre}</span>
               {fecha ? ` · ${fecha}` : ''}
@@ -274,10 +274,10 @@ export default function TransferModal({ onClose, onTransferred }: Props) {
         )}
 
         <div className="flex justify-end gap-3 mt-6">
-          <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer">
+          <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">
             Cancelar
           </button>
-          <button type="submit" disabled={saving} className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 cursor-pointer">
+          <button type="submit" disabled={saving} className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-blue-500 hover:bg-slate-800 dark:hover:bg-blue-400 disabled:opacity-50 cursor-pointer">
             {saving ? 'Trasladando...' : 'Trasladar stock'}
           </button>
         </div>

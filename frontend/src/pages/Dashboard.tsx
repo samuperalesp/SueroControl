@@ -1,7 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ComponentType, type SVGProps } from 'react';
 import { fetchDashboard } from '../api/dashboardApi';
 import type { DashboardSummary } from '../api/dashboardApi';
 import { useWarehouse } from '../context/WarehouseContext';
+import {
+  PurchasesIcon,
+  StethoscopeIcon,
+  TrendingUpIcon,
+  WalletIcon,
+} from '../components/Icons';
 
 function formatCOP(value: number): string {
   return new Intl.NumberFormat('es-CO', {
@@ -10,6 +16,16 @@ function formatCOP(value: number): string {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(value);
+}
+
+type IconComponent = ComponentType<SVGProps<SVGSVGElement>>;
+
+interface SummaryCard {
+  title: string;
+  value: string;
+  subtitle: string;
+  icon: IconComponent;
+  iconClass: string;
 }
 
 export default function Dashboard() {
@@ -64,134 +80,205 @@ export default function Dashboard() {
     setFilterError('');
   }
 
-  const cards = [
+  const cards: SummaryCard[] = [
     {
       title: 'Ventas Totales',
       value: formatCOP(data?.ventasTotales || 0),
       subtitle: `${data?.totalSales || 0} ventas realizadas`,
-      color: 'bg-blue-50 text-blue-700',
+      icon: WalletIcon,
+      iconClass: 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400',
     },
     {
       title: 'Compras Totales',
       value: formatCOP(data?.comprasTotales || 0),
       subtitle: 'Compras realizadas',
-      color: 'bg-orange-50 text-orange-700',
+      icon: PurchasesIcon,
+      iconClass: 'bg-orange-50 text-orange-600 dark:bg-orange-500/10 dark:text-orange-400',
     },
     {
       title: 'Ganancia Centro',
       value: formatCOP(data?.gananciaCentro || 0),
       subtitle: 'Utilidad distribuida al centro',
-      color: 'bg-purple-50 text-purple-700',
+      icon: TrendingUpIcon,
+      iconClass: 'bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400',
     },
     {
       title: 'Top Médicos',
       value: `${data?.topMedicos?.length || 0} médicos`,
       subtitle: 'Médicos con mayor utilidad',
-      color: 'bg-green-50 text-green-700',
+      icon: StethoscopeIcon,
+      iconClass: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400',
     },
   ];
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">
-        Panel de Control{selectedWarehouse ? ` — ${selectedWarehouse.nombre}` : ''}
-      </h2>
+      <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="sc-page-title">Panel de Control</h2>
+          <p className="sc-page-subtitle">
+            {selectedWarehouse
+              ? `Vista general de ${selectedWarehouse.nombre}`
+              : 'Vista general de la operación'}
+          </p>
+        </div>
+        <span className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-medium text-slate-500 shadow-sm dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          Datos en tiempo real
+        </span>
+      </div>
 
-      <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm mb-6">
+      {/* Filtros */}
+      <div className="sc-card mb-6 p-4 sm:p-5">
         <div className="flex flex-wrap items-end gap-3">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Desde</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Desde
+            </label>
             <input
               type="date"
               value={fromDate}
               onChange={e => setFromDate(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400"
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 dark:focus:border-blue-500"
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-600">Hasta</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              Hasta
+            </label>
             <input
               type="date"
               value={toDate}
               onChange={e => setToDate(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400"
+              className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition-all focus:border-blue-400 focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 dark:focus:border-blue-500"
             />
           </div>
           <button
             onClick={handleApply}
-            className="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 cursor-pointer"
+            className="h-10 cursor-pointer rounded-xl bg-slate-900 px-4 text-sm font-medium text-white shadow-sm transition-colors hover:bg-slate-800 dark:bg-blue-500 dark:hover:bg-blue-400"
           >
             Aplicar
           </button>
           <button
             onClick={handleClear}
-            className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 cursor-pointer"
+            className="h-10 cursor-pointer rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
           >
             Limpiar filtros
           </button>
         </div>
-        {filterError && <p className="text-red-500 text-xs mt-2">{filterError}</p>}
+        {filterError && <p className="mt-2 text-xs text-red-500 dark:text-red-400">{filterError}</p>}
       </div>
 
       {loading ? (
-        <div className="text-center mt-20">
-          <p className="text-gray-400">Cargando dashboard...</p>
+        <div className="flex flex-col items-center justify-center py-24">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600 dark:border-slate-700 dark:border-t-blue-400" />
+          <p className="mt-3 text-sm text-slate-400 dark:text-slate-500">Cargando dashboard...</p>
         </div>
       ) : error ? (
-        <div className="text-center mt-20">
-          <p className="text-red-500">{error}</p>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-red-200 bg-red-50 py-16 dark:border-red-500/30 dark:bg-red-500/10">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {cards.map((card) => (
-              <div key={card.title} className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-                <p className="text-sm text-gray-500 mb-1">{card.title}</p>
-                <p className={`text-2xl font-bold ${card.color.split(' ')[1]}`}>{card.value}</p>
-                <p className="text-xs text-gray-400 mt-2">{card.subtitle}</p>
-              </div>
-            ))}
+          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {cards.map(card => {
+              const Icon = card.icon;
+              return (
+                <div key={card.title} className="sc-card sc-card-hover p-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                        {card.title}
+                      </p>
+                      <p className="mt-2 truncate text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+                        {card.value}
+                      </p>
+                    </div>
+                    <span
+                      className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${card.iconClass}`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </span>
+                  </div>
+                  <p className="mt-3 border-t border-slate-100 pt-3 text-[11px] text-slate-400 dark:border-slate-800 dark:text-slate-500">
+                    {card.subtitle}
+                  </p>
+                </div>
+              );
+            })}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Resumen de Rentabilidad</h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Utilidad Total</span>
-                  <span className="font-bold text-gray-800">{formatCOP(data?.utilidadTotal || 0)}</span>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="sc-card p-5 sm:p-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  Resumen de Rentabilidad
+                </h3>
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-medium uppercase tracking-wider text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                  Periodo
+                </span>
+              </div>
+              <div className="space-y-1 text-sm">
+                <div className="flex items-center justify-between border-b border-slate-100 py-3 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400">Utilidad Total</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {formatCOP(data?.utilidadTotal || 0)}
+                  </span>
                 </div>
-                <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-600">Distribución al Centro</span>
-                  <span className="font-medium text-purple-600">{formatCOP(data?.gananciaCentro || 0)}</span>
+                <div className="flex items-center justify-between border-b border-slate-100 py-3 dark:border-slate-800">
+                  <span className="text-slate-500 dark:text-slate-400">Distribución al Centro</span>
+                  <span className="font-medium text-purple-600 dark:text-purple-400">
+                    {formatCOP(data?.gananciaCentro || 0)}
+                  </span>
                 </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-600">Paquetes Vendidos</span>
-                  <span className="font-medium text-gray-800">{data?.totalPackagesSold || 0}</span>
+                <div className="flex items-center justify-between py-3">
+                  <span className="text-slate-500 dark:text-slate-400">Paquetes Vendidos</span>
+                  <span className="font-medium text-slate-900 dark:text-slate-100">
+                    {data?.totalPackagesSold || 0}
+                  </span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">Top Médicos por Utilidad</h3>
+            <div className="sc-card p-5 sm:p-6">
+              <h3 className="mb-4 text-sm font-semibold text-slate-900 dark:text-slate-100">
+                Top Médicos por Utilidad
+              </h3>
               {data?.topMedicos && data.topMedicos.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {data.topMedicos.slice(0, 5).map((medico, idx) => (
-                    <div key={medico.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
-                      <div className="flex items-center gap-2">
-                        <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white ${
-                          idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : idx === 2 ? 'bg-amber-700' : 'bg-gray-300'
-                        }`}>
+                    <div
+                      key={medico.id}
+                      className="flex items-center justify-between gap-3 border-b border-slate-100 py-2.5 last:border-0 dark:border-slate-800"
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span
+                          className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold text-white ${
+                            idx === 0
+                              ? 'bg-amber-500'
+                              : idx === 1
+                                ? 'bg-slate-400'
+                                : idx === 2
+                                  ? 'bg-amber-700'
+                                  : 'bg-slate-300 dark:bg-slate-700'
+                          }`}
+                        >
                           {idx + 1}
                         </span>
-                        <span className="text-sm text-gray-700">{medico.nombre}</span>
+                        <span className="truncate text-sm text-slate-700 dark:text-slate-300">
+                          {medico.nombre}
+                        </span>
                       </div>
-                      <span className="text-sm font-semibold text-green-600">{formatCOP(medico.total)}</span>
+                      <span className="shrink-0 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                        {formatCOP(medico.total)}
+                      </span>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400">No hay datos de médicos disponibles.</p>
+                <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-500">
+                  No hay datos de médicos disponibles.
+                </p>
               )}
             </div>
           </div>
