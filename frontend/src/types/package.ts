@@ -1,8 +1,11 @@
+import type { Product } from './product';
+
 export interface PackageDetail {
   id: string;
   packageId: string;
   productId: string;
   quantity: number;
+  product?: Product;
 }
 
 export interface PackageOperatingCost {

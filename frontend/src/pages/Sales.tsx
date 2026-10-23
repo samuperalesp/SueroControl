@@ -9,6 +9,15 @@ import { fetchPackages } from '../api/packageApi';
 import { fetchTerceros } from '../api/terceroApi';
 import { useWarehouse } from '../context/WarehouseContext';
 
+function formatCOP(value: number): string {
+  return new Intl.NumberFormat('es-CO', {
+    style: 'currency',
+    currency: 'COP',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value ?? 0);
+}
+
 type LineItemType = 'PRODUCT' | 'PACKAGE' | 'PACKAGE_SESSION';
 
 interface LineItem {
@@ -511,6 +520,41 @@ export default function Sales() {
     return pkg?.details || [];
   }
 
+  function getSaleInsumoCost(sale: Sale): number {
+    // Las ventas creadas desde el módulo de Ventas no almacenan costoTotal en la
+    // venta (el backend solo lo guarda para ventas de paquete/sesión), por lo que
+    // se calcula con los costos configurados de productos y paquetes.
+    if (sale.costoTotal && sale.costoTotal > 0) return sale.costoTotal;
+
+    return (sale.details ?? []).reduce((total, detail) => {
+      const quantity = detail.quantity ?? 0;
+
+      if (detail.packageId) {
+        const pkg = packages.find(p => p.id === detail.packageId);
+        if (!pkg) return total;
+
+        const costoMedicamentos = (pkg.details ?? []).reduce((sum, comp) => {
+          const product = products.find(p => p.id === comp.productId) ?? comp.product;
+          return sum + (product?.costoCompra ?? 0) * (comp.quantity ?? 0);
+        }, 0);
+
+        const costoOperativo = (pkg.operatingCosts ?? []).reduce(
+          (sum, costo) => sum + (costo.valor ?? 0),
+          0,
+        );
+
+        return total + (costoMedicamentos + costoOperativo) * quantity;
+      }
+
+      if (detail.productId) {
+        const product = products.find(p => p.id === detail.productId);
+        return total + (product?.costoCompra ?? 0) * quantity;
+      }
+
+      return total;
+    }, 0);
+  }
+
   function getClienteName(sale: Sale) {
     if (!sale.terceroId) return '-';
     const t = terceros.find(te => te.id === sale.terceroId);
@@ -726,6 +770,7 @@ export default function Sales() {
                     <th className="px-4 py-3 font-medium">Cliente</th>
                     <th className="px-4 py-3 font-medium">Médico</th>
                     <th className="px-4 py-3 font-medium">Productos</th>
+                    <th className="px-4 py-3 font-medium">Costo Insumos</th>
                     <th className="px-4 py-3 font-medium">Total</th>
                     <th className="px-4 py-3 font-medium">Estado</th>
                     <th className="px-4 py-3 font-medium">Acciones</th>
@@ -749,7 +794,8 @@ export default function Sales() {
                           return `${getItemName(d.productId)} x${d.quantity}`;
                         }).join(', ')}
                       </td>
-                      <td className="px-4 py-3 text-slate-700 dark:text-slate-200 font-medium">${s.total.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">{formatCOP(getSaleInsumoCost(s))}</td>
+                      <td className="px-4 py-3 text-slate-700 dark:text-slate-200 font-medium whitespace-nowrap">{formatCOP(s.total)}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
                           s.estado === 'ACTIVA' ? 'bg-green-100 dark:bg-emerald-500/15 text-green-700 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400'
@@ -879,7 +925,7 @@ export default function Sales() {
                             {packageFiltered.map(p => (
                               <li key={p.id} onClick={() => selectPackage(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                                 <span className="font-medium">{p.nombre}</span>
-                                <span className="text-slate-400 dark:text-slate-500 ml-auto">${p.precio.toFixed(2)}</span>
+                                <span className="text-slate-400 dark:text-slate-500 ml-auto">{formatCOP(p.precio)}</span>
                               </li>
                             ))}
                           </ul>
@@ -897,7 +943,7 @@ export default function Sales() {
                       </div>
                       <div className="w-20 text-right">
                         <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Subtotal</label>
-                        <p className="text-sm text-slate-800 dark:text-slate-100 py-2">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</p>
+                        <p className="text-sm text-slate-800 dark:text-slate-100 py-2">{formatCOP(item.quantity * (item.unitPrice || 0))}</p>
                       </div>
                       <button type="button" onClick={() => removeItem(idx)} className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-lg cursor-pointer pb-1">×</button>
                     </div>
@@ -922,7 +968,7 @@ export default function Sales() {
             </div>
             <button type="button" onClick={addItem} className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium cursor-pointer">+ Agregar producto</button>
             <div className="flex justify-end mt-4 mb-6">
-              <p className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">Total: ${createTotal.toFixed(2)}</p>
+              <p className="text-base font-semibold tracking-tight text-slate-900 dark:text-white">Total: {formatCOP(createTotal)}</p>
             </div>
             <div className="flex justify-end gap-3">
               <button type="button" onClick={resetCreateModal} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cancelar</button>
@@ -1033,7 +1079,7 @@ export default function Sales() {
                             {packageFiltered.map(p => (
                               <li key={p.id} onClick={() => selectEditPackage(idx, p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                                 <span className="font-medium">{p.nombre}</span>
-                                <span className="text-slate-400 dark:text-slate-500 ml-auto">${p.precio.toFixed(2)}</span>
+                                <span className="text-slate-400 dark:text-slate-500 ml-auto">{formatCOP(p.precio)}</span>
                               </li>
                             ))}
                           </ul>
@@ -1051,7 +1097,7 @@ export default function Sales() {
                       </div>
                       <div className="w-20 text-right">
                         <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Subtotal</label>
-                        <p className="text-sm text-slate-800 dark:text-slate-100 py-2">${(item.quantity * (item.unitPrice || 0)).toFixed(2)}</p>
+                        <p className="text-sm text-slate-800 dark:text-slate-100 py-2">{formatCOP(item.quantity * (item.unitPrice || 0))}</p>
                       </div>
                       <button type="button" onClick={() => removeEditItem(idx)} className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-lg cursor-pointer pb-1">×</button>
                     </div>
@@ -1152,15 +1198,15 @@ export default function Sales() {
                       <tr key={i}>
                         <td className="px-2 py-2">{item.producto}</td>
                         <td className="text-center px-2 py-2">{item.cantidad}</td>
-                        <td className="text-right px-2 py-2">${item.precioUnitario.toFixed(2)}</td>
-                        <td className="text-right px-2 py-2">${item.subtotal.toFixed(2)}</td>
+                        <td className="text-right px-2 py-2">{formatCOP(item.precioUnitario)}</td>
+                        <td className="text-right px-2 py-2">{formatCOP(item.subtotal)}</td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
                     <tr className="font-bold text-slate-800 dark:text-slate-100">
                       <td colSpan={3} className="text-right px-2 py-3">Total:</td>
-                      <td className="text-right px-2 py-3">${comprobanteData.total.toFixed(2)}</td>
+                      <td className="text-right px-2 py-3">{formatCOP(comprobanteData.total)}</td>
                     </tr>
                   </tfoot>
                 </table>
@@ -1210,7 +1256,7 @@ export default function Sales() {
                       <td className="px-4 py-3 text-slate-800 dark:text-slate-100 font-medium">{ps.cantidadSesiones}</td>
                       <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{ps.sesionesConsumidas}</td>
                       <td className="px-4 py-3 text-slate-800 dark:text-slate-100 font-medium">{ps.sesionesPendientes}</td>
-                      <td className="px-4 py-3 text-slate-700 dark:text-slate-200 font-medium">${ps.totalPagado.toFixed(2)}</td>
+                      <td className="px-4 py-3 text-slate-700 dark:text-slate-200 font-medium whitespace-nowrap">{formatCOP(ps.totalPagado)}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${getPsEstadoBadge(ps.estado)}`}>
                           {ps.estado === 'FINALIZADO' ? 'Finalizado' : ps.estado === 'ACTIVA' ? 'Activa' : 'Cancelada'}
@@ -1343,7 +1389,7 @@ export default function Sales() {
                   {packages.filter(p => p.activo && p.nombre.toLowerCase().includes(psPackageSearch.toLowerCase())).map(p => (
                     <li key={p.id} onClick={() => selectPsPackage(p)} className="px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/10 flex justify-between">
                       <span className="font-medium">{p.nombre}</span>
-                      <span className="text-slate-400 dark:text-slate-500 ml-auto">${p.precio.toFixed(2)}</span>
+                      <span className="text-slate-400 dark:text-slate-500 ml-auto">{formatCOP(p.precio)}</span>
                     </li>
                   ))}
                 </ul>
@@ -1375,19 +1421,19 @@ export default function Sales() {
                 <div className="bg-slate-50 dark:bg-slate-800/40 rounded-xl p-4 mb-4 space-y-1 text-sm">
                   <div className="flex justify-between">
                     <span className="text-slate-500 dark:text-slate-400">Precio unitario:</span>
-                    <span className="text-slate-800 dark:text-slate-100">${pkg.precio.toFixed(2)}</span>
+                    <span className="text-slate-800 dark:text-slate-100">{formatCOP(pkg.precio)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500 dark:text-slate-400">Subtotal:</span>
-                    <span className="text-slate-800 dark:text-slate-100">${subtotal.toFixed(2)}</span>
+                    <span className="text-slate-800 dark:text-slate-100">{formatCOP(subtotal)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500 dark:text-slate-400">Descuento ({psDiscount}%):</span>
-                    <span className="text-red-600 dark:text-red-400">-${descuentoValor.toFixed(2)}</span>
+                    <span className="text-red-600 dark:text-red-400">-{formatCOP(descuentoValor)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-base pt-2 border-t border-slate-200 dark:border-slate-800">
                     <span className="text-slate-700 dark:text-slate-200">Total a pagar:</span>
-                    <span className="text-slate-900 dark:text-white">${total.toFixed(2)}</span>
+                    <span className="text-slate-900 dark:text-white">{formatCOP(total)}</span>
                   </div>
                 </div>
               );
