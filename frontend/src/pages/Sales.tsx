@@ -18,6 +18,59 @@ function formatCOP(value: number): string {
   }).format(value ?? 0);
 }
 
+function toDateInputValue(value?: string | Date | null): string {
+  if (!value) return '';
+  if (typeof value === 'string') {
+    const datePart = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (datePart) return `${datePart[1]}-${datePart[2]}-${datePart[3]}`;
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function todayDateValue(): string {
+  return toDateInputValue(new Date());
+}
+
+function formatDateDisplay(value?: string | Date | null): string {
+  const inputValue = toDateInputValue(value);
+  if (!inputValue) return '-';
+  const [year, month, day] = inputValue.split('-');
+  return `${day}/${month}/${year}`;
+}
+
+// El backend aún no expone un campo para el pago de insumos, por lo que el
+// estado se conserva localmente en el navegador, asociado al id de la venta.
+const INSUMOS_PAGADOS_STORAGE_KEY = 'suerocontrol.sales.insumosPagados';
+
+// Respaldo local para la fecha de venta de los paquetes x sesiones. La fecha se
+// intenta persistir en la venta asociada mediante el endpoint existente de
+// ventas; este almacenamiento evita perderla si dicha actualización falla.
+const PS_FECHAS_VENTA_STORAGE_KEY = 'suerocontrol.packageSessions.fechasVenta';
+
+function loadPsFechasVenta(): Record<string, string> {
+  try {
+    const raw = localStorage.getItem(PS_FECHAS_VENTA_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === 'object' ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function loadInsumosPagados(): Record<string, boolean> {
+  try {
+    const raw = localStorage.getItem(INSUMOS_PAGADOS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
 type LineItemType = 'PRODUCT' | 'PACKAGE' | 'PACKAGE_SESSION';
 
 interface LineItem {
@@ -35,6 +88,7 @@ type Tab = 'ventas' | 'paquetes-sesiones' | 'aplicaciones';
 export default function Sales() {
   const { selectedWarehouseId } = useWarehouse();
   const [sales, setSales] = useState<Sale[]>([]);
+  const [insumosPagados, setInsumosPagados] = useState<Record<string, boolean>>(loadInsumosPagados);
   const [products, setProducts] = useState<Product[]>([]);
   const [packages, setPackages] = useState<Package[]>([]);
   const [terceros, setTerceros] = useState<Tercero[]>([]);
@@ -63,6 +117,7 @@ export default function Sales() {
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [fechaVenta, setFechaVenta] = useState(new Date().toISOString().split('T')[0]);
+  const [createInsumosPagado, setCreateInsumosPagado] = useState(false);
 
   // Edit modal
   const [showEdit, setShowEdit] = useState(false);
@@ -82,6 +137,7 @@ export default function Sales() {
   const [editSaving, setEditSaving] = useState(false);
   const [editErrors, setEditErrors] = useState<Record<string, string>>({});
   const [editFechaVenta, setEditFechaVenta] = useState('');
+  const [editInsumosPagado, setEditInsumosPagado] = useState(false);
 
   // Cancel modal
   const [showCancel, setShowCancel] = useState(false);
@@ -101,6 +157,7 @@ export default function Sales() {
   // PackageSession (Paquete x Sesiones)
   const [packageSessions, setPackageSessions] = useState<PackageSession[]>([]);
   const [psLoading, setPsLoading] = useState(false);
+  const [psFechasVenta, setPsFechasVenta] = useState<Record<string, string>>(loadPsFechasVenta);
 
   // Create PackageSession modal
   const [showCreatePs, setShowCreatePs] = useState(false);
@@ -118,8 +175,16 @@ export default function Sales() {
   const psPackageRef = useRef<HTMLDivElement | null>(null);
   const [psSessions, setPsSessions] = useState(1);
   const [psDiscount, setPsDiscount] = useState(0);
+  const [psFechaVenta, setPsFechaVenta] = useState(todayDateValue());
   const [psSaving, setPsSaving] = useState(false);
   const [psErrors, setPsErrors] = useState<Record<string, string>>({});
+
+  // Edit PackageSession sale date modal
+  const [showEditPsFecha, setShowEditPsFecha] = useState(false);
+  const [editingPsFecha, setEditingPsFecha] = useState<PackageSession | null>(null);
+  const [editPsFechaValue, setEditPsFechaValue] = useState('');
+  const [editPsFechaSaving, setEditPsFechaSaving] = useState(false);
+  const [editPsFechaError, setEditPsFechaError] = useState('');
 
   // Apply session modal
   const [showApply, setShowApply] = useState(false);
@@ -153,6 +218,41 @@ export default function Sales() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [openDropdown, editOpenDropdown]);
+
+  // Persistir el estado de pago de insumos en el navegador.
+  useEffect(() => {
+    try {
+      localStorage.setItem(INSUMOS_PAGADOS_STORAGE_KEY, JSON.stringify(insumosPagados));
+    } catch {
+      // Si el almacenamiento no está disponible, se mantiene solo en memoria.
+    }
+  }, [insumosPagados]);
+
+  // Persistir el respaldo local de las fechas de venta de paquetes x sesiones.
+  useEffect(() => {
+    try {
+      localStorage.setItem(PS_FECHAS_VENTA_STORAGE_KEY, JSON.stringify(psFechasVenta));
+    } catch {
+      // Si el almacenamiento no está disponible, se mantiene solo en memoria.
+    }
+  }, [psFechasVenta]);
+
+  function getPsFechaVenta(ps: PackageSession): string {
+    return psFechasVenta[ps.id] || ps.sale?.fechaVenta || ps.fechaInicio || ps.createdAt || todayDateValue();
+  }
+
+  function isInsumosPagado(sale: Sale): boolean {
+    return !!insumosPagados[sale.id];
+  }
+
+  function setInsumosPagadoFor(saleId: string, pagado: boolean) {
+    setInsumosPagados(prev => ({ ...prev, [saleId]: pagado }));
+  }
+
+  function toggleInsumosPagado(sale: Sale) {
+    if (sale.estado !== 'ACTIVA') return;
+    setInsumosPagados(prev => ({ ...prev, [sale.id]: !prev[sale.id] }));
+  }
 
   const load = useCallback(async (cons?: string, cli?: string, from?: string, to?: string) => {
     setLoading(true);
@@ -285,7 +385,8 @@ export default function Sales() {
     if (!validate()) return;
     setSaving(true);
     try {
-      await createSale({ terceroId: selectedClienteId || undefined, medicoId: selectedMedicoId, warehouseId: selectedWarehouseId ?? undefined, fechaVenta, details: items });
+      const created = await createSale({ terceroId: selectedClienteId || undefined, medicoId: selectedMedicoId, warehouseId: selectedWarehouseId ?? undefined, fechaVenta, details: items });
+      if (createInsumosPagado && created?.id) setInsumosPagadoFor(created.id, true);
       resetCreateModal();
       load();
     } catch (e: any) { setErrors({ general: e.message }); }
@@ -301,6 +402,7 @@ export default function Sales() {
     setMedicoSearch('');
     setSelectedMedicoId('');
     setFechaVenta(new Date().toISOString().split('T')[0]);
+    setCreateInsumosPagado(false);
     setErrors({});
   }
 
@@ -343,6 +445,7 @@ export default function Sales() {
       return prod ? `${prod.codigo} - ${prod.nombre}` : '';
     }));
     setEditFechaVenta(sale.fechaVenta ? sale.fechaVenta.split('T')[0] : new Date().toISOString().split('T')[0]);
+    setEditInsumosPagado(isInsumosPagado(sale));
     setEditErrors({});
     setEditOpenDropdown(null);
     setShowEdit(true);
@@ -448,10 +551,14 @@ export default function Sales() {
         }));
       }
       if (editFechaVenta) dto.fechaVenta = editFechaVenta;
+      const insumosChanged = editInsumosPagado !== isInsumosPagado(editingSale);
       if (Object.keys(dto).length === 0) {
-        setShowEdit(false); return;
+        if (insumosChanged) setInsumosPagadoFor(editingSale.id, editInsumosPagado);
+        setShowEdit(false);
+        return;
       }
       await updateSale(editingSale.id, dto);
+      if (insumosChanged) setInsumosPagadoFor(editingSale.id, editInsumosPagado);
       setShowEdit(false);
       load();
     } catch (e: any) { setEditErrors({ general: e.message }); }
@@ -579,6 +686,7 @@ export default function Sales() {
     setPsSelectedPackageId('');
     setPsSessions(1);
     setPsDiscount(0);
+    setPsFechaVenta(todayDateValue());
     setPsErrors({});
   }
 
@@ -606,6 +714,7 @@ export default function Sales() {
     if (!psSelectedPackageId) errs.package = 'Seleccione un paquete';
     if (psSessions < 1) errs.sessions = 'Cantidad inválida';
     if (psDiscount < 0 || psDiscount > 100) errs.discount = 'Descuento inválido (0-100)';
+    if (!psFechaVenta) errs.fechaVenta = 'Seleccione la fecha de venta';
     setPsErrors(errs);
     return Object.keys(errs).length === 0;
   }
@@ -615,7 +724,7 @@ export default function Sales() {
     if (!validatePs()) return;
     setPsSaving(true);
     try {
-      await createPackageSession({
+      const created = await createPackageSession({
         patientId: psSelectedPatientId || undefined,
         medicoId: psSelectedMedicoId,
         warehouseId: selectedWarehouseId ?? undefined,
@@ -623,10 +732,60 @@ export default function Sales() {
         cantidadSesiones: psSessions,
         descuentoPorcentaje: psDiscount,
       });
+      if (created?.id && psFechaVenta) {
+        let fechaPersistida = false;
+        if (created.saleId) {
+          try {
+            // Se reutiliza el endpoint existente de ventas para persistir la
+            // fecha de venta, sin modificar el contrato de package-sessions.
+            await updateSale(created.saleId, { fechaVenta: psFechaVenta });
+            fechaPersistida = true;
+          } catch (dateError) {
+            console.error('No se pudo persistir la fecha de venta del paquete x sesiones', dateError);
+          }
+        }
+        if (!fechaPersistida) {
+          setPsFechasVenta(prev => ({ ...prev, [created.id]: psFechaVenta }));
+        }
+      }
       resetCreatePsModal();
       loadPs();
     } catch (e: any) { setPsErrors({ general: e.message }); }
     finally { setPsSaving(false); }
+  }
+
+  function openEditPsFecha(ps: PackageSession) {
+    setEditingPsFecha(ps);
+    setEditPsFechaValue(toDateInputValue(getPsFechaVenta(ps)));
+    setEditPsFechaError('');
+    setShowEditPsFecha(true);
+  }
+
+  async function handleSavePsFecha(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingPsFecha) return;
+    if (!editPsFechaValue) {
+      setEditPsFechaError('Seleccione la fecha de venta');
+      return;
+    }
+    setEditPsFechaSaving(true);
+    try {
+      if (editingPsFecha.saleId) {
+        await updateSale(editingPsFecha.saleId, { fechaVenta: editPsFechaValue });
+      }
+      // Si la actualización fue exitosa, la fecha oficial proviene de la venta.
+      setPsFechasVenta(prev => {
+        const next = { ...prev };
+        delete next[editingPsFecha.id];
+        return next;
+      });
+      setShowEditPsFecha(false);
+      loadPs();
+    } catch (error) {
+      setEditPsFechaError(error instanceof Error ? error.message : 'Error al actualizar la fecha de venta');
+    } finally {
+      setEditPsFechaSaving(false);
+    }
   }
 
   function openApply(ps: PackageSession) {
@@ -771,6 +930,7 @@ export default function Sales() {
                     <th className="px-4 py-3 font-medium">Médico</th>
                     <th className="px-4 py-3 font-medium">Productos</th>
                     <th className="px-4 py-3 font-medium">Costo Insumos</th>
+                    <th className="px-4 py-3 font-medium">Pago Insumos</th>
                     <th className="px-4 py-3 font-medium">Total</th>
                     <th className="px-4 py-3 font-medium">Estado</th>
                     <th className="px-4 py-3 font-medium">Acciones</th>
@@ -795,6 +955,29 @@ export default function Sales() {
                         }).join(', ')}
                       </td>
                       <td className="px-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">{formatCOP(getSaleInsumoCost(s))}</td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => toggleInsumosPagado(s)}
+                          disabled={s.estado !== 'ACTIVA'}
+                          title={s.estado !== 'ACTIVA' ? 'Venta anulada' : isInsumosPagado(s) ? 'Marcar insumos como pendientes' : 'Marcar insumos como pagados'}
+                          aria-pressed={isInsumosPagado(s)}
+                          className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1 text-xs font-medium transition-colors ${
+                            isInsumosPagado(s)
+                              ? 'border-green-200 bg-green-100 text-green-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-400'
+                              : 'border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/15 dark:text-amber-400'
+                          } ${
+                            s.estado === 'ACTIVA'
+                              ? isInsumosPagado(s)
+                                ? 'cursor-pointer hover:bg-green-200 dark:hover:bg-emerald-500/25'
+                                : 'cursor-pointer hover:bg-amber-200 dark:hover:bg-amber-500/25'
+                              : 'cursor-not-allowed opacity-50'
+                          }`}
+                        >
+                          <span className={`h-1.5 w-1.5 rounded-full ${isInsumosPagado(s) ? 'bg-green-500 dark:bg-emerald-400' : 'bg-amber-500 dark:bg-amber-400'}`} />
+                          {isInsumosPagado(s) ? 'Pagado' : 'Pendiente'}
+                        </button>
+                      </td>
                       <td className="px-4 py-3 text-slate-700 dark:text-slate-200 font-medium whitespace-nowrap">{formatCOP(s.total)}</td>
                       <td className="px-4 py-3">
                         <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -877,6 +1060,19 @@ export default function Sales() {
               <input type="date" value={fechaVenta} onChange={e => setFechaVenta(e.target.value)}
                 max={new Date().toISOString().split('T')[0]}
                 className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 px-3 py-2.5">
+              <div>
+                <label htmlFor="create-insumos-pagados" className="text-xs font-medium text-slate-600 dark:text-slate-300 block">Insumos pagados</label>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">Marca si los insumos de esta venta ya fueron pagados.</p>
+              </div>
+              <label className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center">
+                <input id="create-insumos-pagados" type="checkbox" checked={createInsumosPagado}
+                  onChange={e => setCreateInsumosPagado(e.target.checked)} className="peer sr-only" />
+                <span className="absolute inset-0 rounded-full bg-slate-200 transition-colors peer-checked:bg-green-500 dark:bg-slate-700 dark:peer-checked:bg-emerald-500" />
+                <span className="absolute left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5" />
+              </label>
             </div>
 
             <div className="space-y-3">
@@ -1031,6 +1227,19 @@ export default function Sales() {
               <input type="date" value={editFechaVenta} onChange={e => setEditFechaVenta(e.target.value)}
                 max={new Date().toISOString().split('T')[0]}
                 className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400" />
+            </div>
+
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-slate-200 dark:border-slate-800 px-3 py-2.5">
+              <div>
+                <label htmlFor="edit-insumos-pagados" className="text-xs font-medium text-slate-600 dark:text-slate-300 block">Insumos pagados</label>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">Marca si los insumos de esta venta ya fueron pagados.</p>
+              </div>
+              <label className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center">
+                <input id="edit-insumos-pagados" type="checkbox" checked={editInsumosPagado}
+                  onChange={e => setEditInsumosPagado(e.target.checked)} className="peer sr-only" />
+                <span className="absolute inset-0 rounded-full bg-slate-200 transition-colors peer-checked:bg-green-500 dark:bg-slate-700 dark:peer-checked:bg-emerald-500" />
+                <span className="absolute left-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5" />
+              </label>
             </div>
 
             <div className="space-y-3">
@@ -1243,7 +1452,7 @@ export default function Sales() {
                     <th className="px-4 py-3 font-medium">Pendientes</th>
                     <th className="px-4 py-3 font-medium">Total</th>
                     <th className="px-4 py-3 font-medium">Estado</th>
-                    <th className="px-4 py-3 font-medium">Fecha</th>
+                    <th className="px-4 py-3 font-medium">Fecha de Venta</th>
                     <th className="px-4 py-3 font-medium">Acciones</th>
                   </tr>
                 </thead>
@@ -1262,7 +1471,24 @@ export default function Sales() {
                           {ps.estado === 'FINALIZADO' ? 'Finalizado' : ps.estado === 'ACTIVA' ? 'Activa' : 'Cancelada'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{new Date(ps.createdAt).toLocaleDateString()}</td>
+                      <td className="px-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <span>{formatDateDisplay(getPsFechaVenta(ps))}</span>
+                          <button
+                            type="button"
+                            onClick={() => openEditPsFecha(ps)}
+                            disabled={ps.sale?.estado === 'ANULADA'}
+                            title={ps.sale?.estado === 'ANULADA' ? 'La venta está anulada' : 'Editar fecha de venta'}
+                            className={`text-[11px] px-1.5 py-0.5 rounded border ${
+                              ps.sale?.estado === 'ANULADA'
+                                ? 'border-slate-200 dark:border-slate-800 text-slate-300 dark:text-slate-600'
+                                : 'border-blue-300 dark:border-blue-500/40 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/10 cursor-pointer'
+                            }`}
+                          >
+                            Editar
+                          </button>
+                        </div>
+                      </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-2">
                           <button onClick={() => openApply(ps)} disabled={ps.estado !== 'ACTIVA' || ps.sesionesPendientes === 0}
@@ -1396,6 +1622,13 @@ export default function Sales() {
               )}
             </div>
 
+            <div className="mb-4">
+              <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Fecha de Venta <span className="text-red-500 dark:text-red-400">*</span></label>
+              <input type="date" value={psFechaVenta} onChange={e => setPsFechaVenta(e.target.value)}
+                className={`w-full border rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 ${psErrors.fechaVenta ? 'border-red-400' : 'border-slate-300 dark:border-slate-700'}`} />
+              {psErrors.fechaVenta && <p className="text-xs text-red-500 dark:text-red-400 mt-1">{psErrors.fechaVenta}</p>}
+            </div>
+
             <div className="grid grid-cols-1 gap-4 mb-4 sm:grid-cols-2">
               <div>
                 <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Número de Sesiones <span className="text-red-500 dark:text-red-400">*</span></label>
@@ -1472,6 +1705,29 @@ export default function Sales() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Edit PackageSession sale date Modal */}
+      {showEditPsFecha && editingPsFecha && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm sc-fade-in dark:bg-black/70">
+          <form onSubmit={handleSavePsFecha} className="sc-slide-up rounded-2xl border border-slate-200/80 bg-white dark:bg-slate-900 shadow-2xl shadow-slate-900/10 dark:border-slate-800 dark:shadow-black/40 w-full max-w-md p-6 mx-4">
+            <h2 className="text-lg font-semibold tracking-tight text-slate-900 dark:text-white mb-2">Editar Fecha de Venta</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+              {getPsPatientName(editingPsFecha)} - {getPsPackageName(editingPsFecha)}
+            </p>
+            {editPsFechaError && <p className="text-red-500 dark:text-red-400 text-xs mb-3">{editPsFechaError}</p>}
+            <label className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1 block">Fecha de Venta</label>
+            <input type="date" value={editPsFechaValue} onChange={e => setEditPsFechaValue(e.target.value)}
+              className="w-full border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-400 mb-4" />
+            <div className="flex justify-end gap-3">
+              <button type="button" onClick={() => setShowEditPsFecha(false)} className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/60 cursor-pointer">Cancelar</button>
+              <button type="submit" disabled={editPsFechaSaving || !editPsFechaValue}
+                className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-blue-500 hover:bg-slate-800 dark:hover:bg-blue-400 disabled:opacity-50 cursor-pointer">
+                {editPsFechaSaving ? 'Guardando...' : 'Guardar Fecha'}
+              </button>
+            </div>
+          </form>
         </div>
       )}
 
